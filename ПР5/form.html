@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Валидация формы</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fa;
+            display: flex;
+            justify-content: center;
+            padding-top: 60px;
+        }
+        .form-box {
+            background: white;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 400px;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+        input:focus { border-color: #3498db; outline: none; }
+        input.error { border-color: #e74c3c; background: #fdecea; }
+        button {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover { background: #2980b9; }
+        #result {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 15px;
+            min-height: 20px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="form-box">
+        <h2>Регистрация</h2>
+
+        <label for="name">Имя:</label>
+        <input type="text" id="name" placeholder="Введите имя">
+
+        <label for="email">Email:</label>
+        <input type="text" id="email" placeholder="example@mail.com">
+
+        <button id="submitBtn">Проверить</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const nameInput = document.getElementById('name');
+        const emailInput = document.getElementById('email');
+        const submitBtn = document.getElementById('submitBtn');
+        const result = document.getElementById('result');
+
+        function validateEmail(email) {
+            // Простая проверка: содержит @ и точку после неё
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        submitBtn.addEventListener('click', () => {
+            const name = nameInput.value.trim();
+            const email = emailInput.value.trim();
+
+            nameInput.classList.remove('error');
+            emailInput.classList.remove('error');
+            result.className = '';
+            result.textContent = '';
+
+            const errors = [];
+
+            if (name === '') {
+                errors.push('Поле "Имя" не должно быть пустым');
+                nameInput.classList.add('error');
+            }
+
+            if (email === '') {
+                errors.push('Поле "Email" не должно быть пустым');
+                emailInput.classList.add('error');
+            } else if (!validateEmail(email)) {
+                errors.push('Email введён неверно');
+                emailInput.classList.add('error');
+            }
+
+            if (errors.length > 0) {
+                result.className = 'error';
+                result.innerHTML = '❌ ' + errors.join('<br>❌ ');
+            } else {
+                result.className = 'success';
+                result.innerHTML = `✅ Добро пожаловать, <b>${name}</b>!<br>Ваш email: ${email}`;
+            }
+        });
+    </script>
+</body>
+</html>

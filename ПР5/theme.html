@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Смена темы</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+            color: #222222;
+            transition: background-color 0.3s, color 0.3s;
+            padding: 40px;
+            min-height: 100vh;
+            margin: 0;
+        }
+        body.dark {
+            background-color: #1e1e1e;
+            color: #f0f0f0;
+        }
+        .card {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #ccc;
+            background: rgba(0,0,0,0.03);
+        }
+        body.dark .card {
+            border-color: #444;
+            background: rgba(255,255,255,0.05);
+        }
+        button {
+            padding: 12px 22px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: #3498db;
+            color: white;
+            transition: 0.2s;
+        }
+        button:hover { opacity: 0.85; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Смена темы 🌓</h1>
+        <p>Нажмите кнопку, чтобы переключить светлую и тёмную тему.</p>
+        <button id="themeBtn">Переключить тему</button>
+    </div>
+
+    <script>
+        const btn = document.getElementById('themeBtn');
+
+        btn.addEventListener('click', () => {
+            document.body.classList.toggle('dark');
+            btn.textContent = document.body.classList.contains('dark')
+                ? 'Светлая тема'
+                : 'Тёмная тема';
+        });
+    </script>
+</body>
+</html>

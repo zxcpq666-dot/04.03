@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Галерея изображений</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fa;
+            padding: 30px;
+            text-align: center;
+        }
+        h1 { color: #2c3e50; }
+        .big-image {
+            width: 500px;
+            height: 320px;
+            margin: 0 auto 20px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            background: #ddd;
+        }
+        .big-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.3s;
+        }
+        .thumbs {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .thumbs img {
+            width: 100px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: 0.2s;
+        }
+        .thumbs img:hover {
+            transform: scale(1.05);
+            border-color: #3498db;
+        }
+        .thumbs img.active {
+            border-color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <h1>Галерея изображений</h1>
+
+    <div class="big-image">
+        <img id="bigImage" src="https://picsum.photos/id/1015/800/500" alt="Большое изображение">
+    </div>
+
+    <div class="thumbs" id="thumbs">
+        <img src="https://picsum.photos/id/1015/200/150" data-full="https://picsum.photos/id/1015/800/500" class="active" alt="1">
+        <img src="https://picsum.photos/id/1016/200/150" data-full="https://picsum.photos/id/1016/800/500" alt="2">
+        <img src="https://picsum.photos/id/1018/200/150" data-full="https://picsum.photos/id/1018/800/500" alt="3">
+        <img src="https://picsum.photos/id/1019/200/150" data-full="https://picsum.photos/id/1019/800/500" alt="4">
+        <img src="https://picsum.photos/id/1024/200/150" data-full="https://picsum.photos/id/1024/800/500" alt="5">
+    </div>
+
+    <script>
+        const bigImage = document.getElementById('bigImage');
+        const thumbs = document.querySelectorAll('#thumbs img');
+
+        thumbs.forEach(thumb => {
+            thumb.addEventListener('click', () => {
+                // Смена большого изображения
+                bigImage.src = thumb.dataset.full;
+
+                // Снятие выделения со всех
+                thumbs.forEach(t => t.classList.remove('active'));
+
+                // Выделение текущего
+                thumb.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

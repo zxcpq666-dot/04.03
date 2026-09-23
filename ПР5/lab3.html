@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Лабораторная №3 — DOM и события</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        #displayText {
+            font-size: 24px;
+            color: #333;
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            min-height: 80px;
+            background-color: #fafafa;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-success:hover {
+            background-color: #1e7e34;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        input {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            width: 70%;
+        }
+        .highlight {
+            background-color: yellow !important;
+            color: red !important;
+            border-color: red !important;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 id="mainTitle">Взаимодействие с DOM</h1>
+        <div id="displayText">Нажмите на кнопку или введите текст</div>
+
+        <div>
+            <button class="btn-primary" id="changeTextBtn">Изменить текст</button>
+            <button class="btn-success" id="toggleHighlightBtn">Подсветить</button>
+            <button class="btn-danger" id="resetBtn">Сбросить</button>
+        </div>
+
+        <br>
+        <input type="text" id="userInput" placeholder="Введите свой текст...">
+        <button id="submitTextBtn" class="btn-primary">Применить</button>
+
+        <br><br>
+        <button id="addItemBtn" class="btn-success">+ Добавить элемент</button>
+        <button id="removeItemBtn" class="btn-danger">- Удалить последний</button>
+
+        <ul id="itemList">
+            <li>Элемент 1</li>
+            <li>Элемент 2</li>
+            <li>Элемент 3</li>
+        </ul>
+    </div>
+
+    <script src="lab3.js"></script>
+</body>
+</html>
