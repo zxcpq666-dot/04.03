@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Менеджер задач</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.container {
+  background: white;
+  border-radius: 15px;
+  padding: 40px;
+  max-width: 800px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  text-align: center;
+  color: #888;
+  margin-bottom: 30px;
+  font-size: 14px;
+}
+
+.input-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 25px;
+}
+
+.input-section input[type="text"] {
+  flex: 2 1 200px;
+}
+
+.input-section input,
+.input-section select {
+  padding: 12px 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.3s;
+}
+
+.input-section input:focus,
+.input-section select:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.input-section button {
+  padding: 12px 25px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.input-section button:hover {
+  background: #5a67d8;
+  transform: scale(1.02);
+}
+
+.stats {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  color: #666;
+  font-size: 14px;
+}
+
+.stats span {
+  font-weight: bold;
+  color: #333;
+}
+
+.filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.filters button {
+  padding: 6px 15px;
+  border: 2px solid #e0e0e0;
+  background: white;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 13px;
+}
+
+.filters button:hover {
+  border-color: #667eea;
+}
+
+.filters button.active {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+.sort-section {
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #666;
+}
+
+.sort-section select {
+  padding: 6px 10px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-left: 10px;
+}
+
+#taskList {
+  list-style: none;
+}
+
+#taskList li {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 15px;
+  margin-bottom: 8px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+  transition: all 0.3s;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+#taskList li:hover {
+  background: #f0f1f3;
+}
+
+#taskList li.completed {
+  border-left-color: #28a745;
+  opacity: 0.7;
+}
+
+#taskList li.completed .task-text {
+  text-decoration: line-through;
+  color: #999;
+}
+
+#taskList li.overdue {
+  border-left-color: #dc3545 !important;
+}
+
+#taskList li.overdue .task-text {
+  color: #dc3545;
+}
+
+.task-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.task-text {
+  flex: 1;
+  cursor: pointer;
+  padding: 5px;
+  font-size: 15px;
+}
+
+.task-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.task-actions button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.btn-delete {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-delete:hover {
+  background: #c82333;
+}
+
+.btn-edit {
+  background: #ffc107;
+  color: #333;
+}
+
+.btn-edit:hover {
+  background: #e0a800;
+}
+
+.task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 12px;
+  color: #888;
+  margin-top: 6px;
+}
+
+.priority-badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.priority-high {
+  background: #dc3545;
+  color: white;
+}
+
+.priority-medium {
+  background: #ffc107;
+  color: #333;
+}
+
+.priority-low {
+  background: #28a745;
+  color: white;
+}
+
+.empty-message {
+  text-align: center;
+  color: #aaa;
+  padding: 40px 0;
+  font-size: 16px;
+}
+
+.empty-message span {
+  font-size: 40px;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.clear-all {
+  display: block;
+  margin: 20px auto 0;
+  padding: 8px 20px;
+  background: none;
+  border: 2px solid #dc3545;
+  color: #dc3545;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.3s;
+}
+
+.clear-all:hover {
+  background: #dc3545;
+  color: white;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Менеджер задач</h1>
+  <p class="subtitle">Добавляйте, отмечайте и удаляйте задачи</p>
+
+  <div class="input-section">
+    <input type="text" id="taskInput" placeholder="Введите задачу..." />
+    <select id="prioritySelect">
+      <option value="high">Высокий</option>
+      <option value="medium" selected>Средний</option>
+      <option value="low">Низкий</option>
+    </select>
+    <input type="date" id="dueDateInput" title="Срок выполнения" />
+    <button id="addTaskBtn">➕ Добавить</button>
+  </div>
+
+  <div class="stats">
+    <span>Всего: <span id="totalCount">0</span></span>
+    <span>Выполнено: <span id="completedCount">0</span></span>
+    <span>Активных: <span id="activeCount">0</span></span>
+  </div>
+
+  <div class="filters">
+    <button class="active" data-filter="all">Все</button>
+    <button data-filter="active">Активные</button>
+    <button data-filter="completed">Выполненные</button>
+  </div>
+
+  <div class="sort-section">
+    Сортировка:
+    <select id="sortSelect">
+      <option value="default">По умолчанию</option>
+      <option value="priority">По приоритету (высокий → низкий)</option>
+      <option value="dueDate">По сроку выполнения</option>
+    </select>
+  </div>
+
+  <ul id="taskList">
+    <li class="empty-message">
+      <span>📭</span>
+      Нет задач. Добавьте первую!
+    </li>
+  </ul>
+
+  <button class="clear-all" id="clearAllBtn">🗑 Очистить все</button>
+</div>
+
+<script src="todo.js"></script>
+</body>
+</html>
