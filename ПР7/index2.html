@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Валидация формы</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+  <h1>Регистрация</h1>
+
+  <form id="registrationForm" novalidate>
+
+    <!-- Имя -->
+    <div class="form-group">
+      <label for="name">Имя *</label>
+      <input type="text" id="name" placeholder="Введите имя">
+      <small class="error-message" id="nameError"></small>
+    </div>
+
+    <!-- Email -->
+    <div class="form-group">
+      <label for="email">Email *</label>
+      <input type="email" id="email" placeholder="example@mail.ru">
+      <small class="error-message" id="emailError"></small>
+    </div>
+
+    <!-- Телефон -->
+    <div class="form-group">
+      <label for="phone">Телефон</label>
+      <input type="tel" id="phone" placeholder="+7 (999) 123-45-67">
+      <small class="error-message" id="phoneError"></small>
+    </div>
+
+    <!-- Дата рождения (Задание 4) -->
+    <div class="form-group">
+      <label for="birthdate">Дата рождения *</label>
+      <input type="date" id="birthdate">
+      <small class="error-message" id="birthdateError"></small>
+    </div>
+
+    <!-- Пароль + «глаз» (Задания 1, 2, 3) -->
+    <div class="form-group">
+      <label for="password">Пароль *</label>
+      <div class="password-wrapper">
+        <input type="password" id="password" placeholder="Минимум 8 символов и цифра">
+        <button type="button" class="toggle-password" id="togglePassword"
+                aria-label="Показать пароль">👁</button>
+      </div>
+      <small class="error-message" id="passwordError"></small>
+    </div>
+
+    <!-- Подтверждение пароля + «глаз» -->
+    <div class="form-group">
+      <label for="confirmPassword">Подтверждение пароля *</label>
+      <div class="password-wrapper">
+        <input type="password" id="confirmPassword" placeholder="Повторите пароль">
+        <button type="button" class="toggle-password" id="toggleConfirm"
+                aria-label="Показать пароль">👁</button>
+      </div>
+      <small class="error-message" id="confirmError"></small>
+    </div>
+
+    <!-- Чекбокс согласия -->
+    <div class="form-group checkbox-group">
+      <label>
+        <input type="checkbox" id="agree">
+        Я согласен с условиями обработки данных *
+      </label>
+      <small class="error-message" id="agreeError"></small>
+    </div>
+
+    <!-- Кнопки -->
+    <div class="buttons">
+      <button type="submit" class="btn-submit">Зарегистрироваться</button>
+      <button type="reset" class="btn-reset">Очистить</button>
+    </div>
+  </form>
+
+  <div id="successMessage" class="success-hidden">
+    Форма успешно отправлена!
+  </div>
+
+  <p class="hint">
+    Откройте консоль (F12 → Console), чтобы увидеть вывод самостоятельных заданий.
+    Повторный запуск: <code>demoAllIndependentTasks()</code>
+  </p>
+</div>
+
+<!-- Подключение внешних файлов -->
+<link rel="stylesheet" href="style.css">
+<script src="script2.js"></script>
+</body>
+</html>
