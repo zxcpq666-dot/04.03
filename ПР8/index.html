@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Системный калькулятор на JS</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px rgb(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      color: #1a73e8;
+    }
+
+    .result {
+      font-weight: bold;
+      color: #e37400;
+    }
+
+    .highlight {
+      background: #e8f0fe;
+      padding: 15px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Вычисления настроек пользователя</h1>
+
+  <div class="card" id="screenInfo">
+    <h2>Информация об экране</h2>
+    <p>Разрешение: <span id="screenRes" class="result"></span></p>
+    <p>Количество пикселей: <span id="pixels" class="result"></span> MP</p>
+    <p>Соотношение сторон: <span id="aspectRatio" class="result"></span></p>
+    <p>Глубина цвета: <span id="colorDepth" class="result"></span> бит</p>
+    <p>Байт на пиксель: <span id="bytesPerPixel" class="result"></span> байт</p>
+  </div>
+
+  <div class="card" id="memoryInfo">
+    <h2>Оперативная память (ОЗУ)</h2>
+    <p>Объем: <span id="ramGB" class="result"></span> ГБ</p>
+    <p>Объем в МБ: <span id="ramMB" class="result"></span> МБ</p>
+    <p>Объем в КБ: <span id="ramKB" class="result"></span> КБ</p>
+    <p>Поместится текстовых страниц А4 (~10 КБ): <span id="ramPages" class="result"></span></p>
+  </div>
+
+  <div class="card" id="browserInfo">
+    <h2>Информация о браузере</h2>
+    <p>Название: <span id="browserName" class="result"></span></p>
+    <p>Разрядность ОС: <span id="osArch" class="result"></span></p>
+    <p>Язык системы: <span id="sysLang" class="result"></span></p>
+  </div>
+
+  <div class="card" id="networkInfo">
+    <h2>Сетевые расчеты</h2>
+    <p>Тип соединения (если доступно): <span id="connType" class="result"></span></p>
+    <p>Скорость (downlink): <span id="downlinkSpeed" class="result"></span> Мбит/с</p>
+    <p>Скачивание файла 500 МБ займет: <span id="downloadTime" class="result"></span> сек</p>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
