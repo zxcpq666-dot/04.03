@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Практика: DOM-манипуляции в JavaScript</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #1a1a2e;
+    padding: 20px;
+    color: #eee;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: #16213e;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  }
+
+  h1 {
+    text-align: center;
+    color: #e94560;
+    margin-bottom: 30px;
+    font-size: 2.2em;
+  }
+
+  h2 {
+    color: #0f3460;
+    background: #e94560;
+    padding: 8px 16px;
+    border-radius: 8px;
+    margin: 25px 0 15px 0;
+    font-size: 1.2em;
+    display: inline-block;
+  }
+
+  h4 { margin-bottom: 10px; }
+
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    margin-bottom: 30px;
+  }
+
+  @media (max-width: 768px) { .row { grid-template-columns: 1fr; } }
+
+  .card {
+    background: #1a1a3e;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #2a2a5e;
+    transition: all 0.3s;
+  }
+  .card:hover { border-color: #e94560; }
+
+  .card-title {
+    color: #e94560;
+    font-weight: bold;
+    margin-bottom: 15px;
+    font-size: 1.1em;
+    border-bottom: 1px solid #2a2a5e;
+    padding-bottom: 8px;
+  }
+
+  /* Стили для интерактивных элементов */
+  .demo-box {
+    background: #2a2a5e;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 10px 0;
+    min-height: 80px;
+  }
+  .demo-box p { margin: 5px 0; }
+
+  .highlight {
+    background: #e94560;
+    color: white;
+    padding: 10px;
+    border-radius: 6px;
+    transition: all 0.3s;
+  }
+
+  /* Подсветка результатов поиска по тексту (самостоятельное задание 2) */
+  .search-hit {
+    outline: 2px solid #f39c12;
+    background: rgba(243, 156, 18, 0.35) !important;
+    border-radius: 4px;
+  }
+
+  .btn {
+    background: #e94560;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+    margin: 5px 5px 5px 0;
+    font-size: 14px;
+  }
+  .btn:hover {
+    background: #c73652;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(233, 69, 96, 0.4);
+  }
+
+  .btn-secondary { background: #0f3460; }
+  .btn-secondary:hover { background: #1a4a7a; box-shadow: 0 4px 12px rgba(15, 52, 96, 0.4); }
+
+  .btn-success { background: #2ecc71; }
+  .btn-success:hover { background: #27ae60; box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4); }
+
+  .btn-danger { background: #e74c3c; }
+  .btn-danger:hover { background: #c0392b; box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4); }
+
+  .btn-warning { background: #f39c12; color: #1a1a2e; }
+  .btn-warning:hover { background: #e67e22; box-shadow: 0 4px 12px rgba(243, 156, 18, 0.4); }
+
+  input[type="text"], input[type="number"] {
+    padding: 10px 15px;
+    border-radius: 6px;
+    border: 2px solid #2a2a5e;
+    background: #0f0f2a;
+    color: #eee;
+    font-size: 14px;
+    width: 100%;
+    max-width: 250px;
+    margin: 5px 0;
+  }
+  input[type="text"]:focus, input[type="number"]:focus {
+    border-color: #e94560;
+    outline: none;
+  }
+
+  .tree-view {
+    font-family: 'Courier New', monospace;
+    background: #0f0f2a;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.8;
+    overflow-x: auto;
+    min-height: 100px;
+  }
+  .tree-view .node { color: #e94560; }
+  .tree-view .attr { color: #f39c12; }
+  .tree-view .text { color: #2ecc71; }
+
+  #gallery {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    padding: 15px 0;
+  }
+
+  .gallery-item {
+    background: #2a2a5e;
+    padding: 15px 25px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+  }
+  .gallery-item:hover {
+    border-color: #e94560;
+    transform: scale(1.05);
+  }
+  .gallery-item.selected {
+    border-color: #2ecc71;
+    background: #1a4a3e;
+  }
+
+  #dynamicList { list-style: none; padding: 0; }
+  #dynamicList li {
+    background: #2a2a5e;
+    padding: 10px 15px;
+    margin-bottom: 5px;
+    border-radius: 6px;
+    border-left: 3px solid #e94560;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  #dynamicList li .remove-btn {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    font-weight: bold;
+    line-height: 24px;
+    text-align: center;
+    flex: 0 0 auto;
+  }
+  #dynamicList li .remove-btn:hover { background: #c0392b; }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+  }
+  .stat-item {
+    background: #2a2a5e;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 13px;
+  }
+  .stat-item .number {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #e94560;
+  }
+
+  #domTreeDisplay {
+    font-family: 'Courier New', monospace;
+    background: #0f0f2a;
+    padding: 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 2;
+    min-height: 150px;
+    overflow-x: auto;
+  }
+
+  /* Самостоятельное задание 5: анимация появления новых элементов */
+  @keyframes appear {
+    from { opacity: 0; transform: translateY(-12px) scale(0.95); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .appear { animation: appear 0.4s ease-out; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>DOM: Объектная модель документа</h1>
+  <p style="text-align:center;color:#aaa;margin-bottom:20px;">
+    Практическое исследование методов доступа к элементам
+  </p>
+
+  <!-- =============================================== -->
+  <!-- БЛОК 1: НАВИГАЦИЯ ПО ДЕРЕВУ DOM                 -->
+  <!-- =============================================== -->
+  <h2>1. Навигация по дереву DOM</h2>
+  <div class="row">
+    <div class="card">
+      <div class="card-title">Семейные связи</div>
+      <div id="familyTree" class="demo-box">
+        <div id="grandparent">
+          👴 Дедушка (grandparent)
+          <div id="parent">
+            👨 Папа (parent)
+            <div id="child1" class="child">🧒 Ребёнок 1</div>
+            <div id="child2" class="child">👧 Ребёнок 2</div>
+            <div id="child3" class="child">👦 Ребёнок 3</div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:15px;">
+        <button class="btn btn-secondary" onclick="showFamilyInfo()">Показать связи</button>
+        <button class="btn btn-secondary" onclick="highlightChildren()">Подсветить детей</button>
+        <button class="btn btn-secondary" onclick="showSiblings()">Показать соседей</button>
+      </div>
+      <div id="familyInfo" style="margin-top:15px;background:#0f0f2a;padding:12px;border-radius:6px;font-size:14px;min-height:60px;color:#aaa;">
+        Информация о связях появится здесь...
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📊 Статистика документа</div>
+      <div class="stats-grid" id="statsContainer">
+        <div class="stat-item">
+          <div class="number" id="totalElements">0</div>
+          <div>Всего элементов</div>
+        </div>
+        <div class="stat-item">
+          <div class="number" id="totalDivs">0</div>
+          <div>Тегов &lt;div&gt;</div>
+        </div>
+        <div class="stat-item">
+          <div class="number" id="totalButtons">0</div>
+          <div>Кнопок</div>
+        </div>
+        <div class="stat-item">
+          <div class="number" id="totalLinks">0</div>
+          <div>Ссылок</div>
+        </div>
+      </div>
+      <button class="btn btn-secondary" style="margin-top:15px;" onclick="updateStatistics()">Обновить статистику</button>
+      <div style="margin-top:15px;">
+        <label style="color:#aaa;font-size:14px;">
+          <input type="checkbox" id="showHiddenCheckbox" onchange="toggleHiddenElements()">
+          Показывать скрытые элементы в статистике
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============================================== -->
+  <!-- БЛОК 2: ПОИСК ЭЛЕМЕНТОВ И АТРИБУТЫ              -->
+  <!-- =============================================== -->
+  <h2>2. Методы поиска элементов</h2>
+  <div class="row">
+    <div class="card">
+      <div class="card-title">🔍 Поиск по селекторам</div>
+      <div class="demo-box">
+        <p id="uniqueParagraph">Этот абзац имеет <strong>id="uniqueParagraph"</strong></p>
+        <p class="highlight-demo">Класс: highlight-demo</p>
+        <p class="highlight-demo">Ещё один с тем же классом</p>
+        <div data-role="special" data-id="123">Элемент с data-атрибутами</div>
+        <div class="test-container">
+          <span>Вложенный span</span>
+          <span class="highlight-demo">Span с классом</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        <button class="btn btn-secondary" onclick="findById()">getElementById</button>
+        <button class="btn btn-secondary" onclick="findByClass()">getElementsByClassName</button>
+        <button class="btn btn-secondary" onclick="findByTag()">getElementsByTagName</button>
+        <button class="btn btn-secondary" onclick="findByQuery()">querySelector</button>
+        <button class="btn btn-secondary" onclick="findByQueryAll()">querySelectorAll</button>
+      </div>
+      <div id="searchResult" style="margin-top:15px;background:#0f0f2a;padding:12px;border-radius:6px;font-size:14px;min-height:60px;color:#aaa;">
+        Результаты поиска...
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🏷️ Работа с атрибутами</div>
+      <div class="demo-box" id="attributeDemo">
+        <img id="demoImage"
+             src="https://via.placeholder.com/150/2a2a5e/e94560?text=DOM"
+             alt="Демо-изображение" width="150" height="150"
+             style="border-radius:8px;">
+        <p id="imageCaption">Подпись к изображению</p>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        <button class="btn btn-secondary" onclick="showAttributes()">Показать атрибуты</button>
+        <button class="btn btn-secondary" onclick="changeImage()">Сменить картинку</button>
+        <button class="btn btn-secondary" onclick="toggleAltText()">Переключить alt</button>
+        <button class="btn btn-secondary" onclick="addDataAttribute()">Добавить data-атрибут</button>
+      </div>
+      <div id="attributeInfo" style="margin-top:15px;background:#0f0f2a;padding:12px;border-radius:6px;font-size:13px;min-height:60px;color:#aaa;">
+        Информация об атрибутах...
+      </div>
+    </div>
+  </div>
+
+  <!-- =============================================== -->
+  <!-- БЛОК 3: СОЗДАНИЕ И УДАЛЕНИЕ ЭЛЕМЕНТОВ           -->
+  <!-- =============================================== -->
+  <h2>3. Создание и удаление элементов</h2>
+  <div class="row">
+    <div class="card">
+      <div class="card-title">Динамический список</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px;">
+        <input type="text" id="newItemInput" placeholder="Введите текст..." style="max-width:200px;">
+        <button class="btn btn-success" onclick="addListItem()">Добавить в конец</button>
+        <button class="btn btn-warning" onclick="addListItemStart()">Добавить в начало</button>
+      </div>
+      <ul id="dynamicList">
+        <li>Элемент 1 <button class="remove-btn" onclick="removeItem(this)">×</button></li>
+        <li>Элемент 2 <button class="remove-btn" onclick="removeItem(this)">×</button></li>
+        <li>Элемент 3 <button class="remove-btn" onclick="removeItem(this)">×</button></li>
+      </ul>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:15px;">
+        <button class="btn btn-danger" onclick="clearAllItems()">Очистить всё</button>
+        <button class="btn btn-secondary" onclick="duplicateFirstItem()">Клонировать первый</button>
+        <button class="btn btn-secondary" onclick="countItems()">Подсчитать элементы</button>
+        <!-- Самостоятельное задание 1 -->
+        <button class="btn btn-warning" onclick="sortList()">↕ Сортировать (А-Я)</button>
+      </div>
+      <p id="itemCount" style="color:#aaa;font-size:14px;margin-top:10px;">Всего элементов: 3</p>
+
+      <!-- Самостоятельное задание 3 -->
+      <div style="margin-top:15px;border-top:1px solid #2a2a5e;padding-top:12px;">
+        <div style="color:#e94560;font-weight:bold;margin-bottom:8px;font-size:14px;">💾 localStorage</div>
+        <button class="btn btn-secondary" onclick="saveList(true)">Сохранить список</button>
+        <button class="btn btn-secondary" onclick="restoreList(true)">Загрузить список</button>
+        <button class="btn btn-danger" onclick="clearStorage()">Очистить хранилище</button>
+        <p id="storageStatus" style="color:#aaa;font-size:13px;margin-top:8px;">Хранилище пусто</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🎨 Работа с классами и стилями</div>
+      <div id="styleDemo" class="demo-box" style="text-align:center;">
+        <div id="targetBox" style="width:120px;height:120px;background:#2a2a5e;border-radius:12px;margin:10px auto;display:flex;align-items:center;justify-content:center;transition:all 0.3s;">
+          <p id="styleStatus" style="color:#aaa;">Базовое состояние</p>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
+          <button class="btn btn-secondary" onclick="toggleHighlight()">Toggle highlight</button>
+          <button class="btn btn-secondary" onclick="toggleBorder()">Toggle border</button>
+          <button class="btn btn-secondary" onclick="changeSize()">Изменить размер</button>
+          <button class="btn btn-secondary" onclick="randomColor()">Случайный цвет</button>
+          <button class="btn btn-secondary" onclick="resetStyle()">Сбросить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============================================== -->
+  <!-- БЛОК 4: РАБОТА С HTML-СОДЕРЖИМЫМ                -->
+  <!-- =============================================== -->
+  <h2>4. Работа с содержимым элементов</h2>
+  <div class="row">
+    <div class="card">
+      <div class="card-title">innerHTML vs textContent</div>
+      <div id="contentDemo" class="demo-box">
+        <p>Этот блок содержит <strong>HTML-разметку</strong>.</p>
+        <p>Здесь есть <span style="color:#e94560;">цветной текст</span>.</p>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        <button class="btn btn-secondary" onclick="showInnerHTML()">Показать innerHTML</button>
+        <button class="btn btn-secondary" onclick="showTextContent()">Показать textContent</button>
+        <button class="btn btn-secondary" onclick="appendHTML()">Добавить HTML</button>
+        <button class="btn btn-secondary" onclick="safeInsert()">Безопасно добавить</button>
+      </div>
+      <div id="contentOutput" style="margin-top:15px;background:#0f0f2a;padding:12px;border-radius:6px;font-size:14px;min-height:60px;color:#aaa;">
+        Результат появится здесь...
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Перемещение и клонирование</div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;">
+        <div id="sourceContainer" class="demo-box" style="flex:1;min-width:150px;">
+          <h4 style="color:#e94560;">Источник</h4>
+          <div id="sourceItem" style="background:#e94560;padding:15px;border-radius:8px;text-align:center;cursor:move;">
+            📦 Перетаскиваемый элемент
+          </div>
+        </div>
+        <div id="targetContainer" class="demo-box" style="flex:1;min-width:150px;">
+          <h4 style="color:#2ecc71;">Цель</h4>
+          <div id="targetDropZone" style="border:2px dashed #2a2a5e;border-radius:8px;min-height:80px;padding:10px;display:flex;flex-direction:column;gap:8px;">
+            <p style="color:#666;text-align:center;font-size:14px;">Перемещённые элементы будут здесь</p>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:15px;display:flex;flex-wrap:wrap;gap:8px;">
+        <button class="btn btn-secondary" onclick="moveToTarget()">Переместить в цель</button>
+        <button class="btn btn-secondary" onclick="moveBack()">Вернуть обратно</button>
+        <button class="btn btn-secondary" onclick="cloneSource()">cloneNode(true)</button>
+        <!-- Самостоятельное задание 4 -->
+        <button class="btn btn-warning" onclick="deepCloneDemo()">Рекурсивный клон</button>
+        <button class="btn btn-danger" onclick="clearTarget()">Очистить цель</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============================================== -->
+  <!-- БЛОК 5: ВИЗУАЛИЗАЦИЯ DOM-ДЕРЕВА                 -->
+  <!-- =============================================== -->
+  <h2>5. Визуализация DOM-дерева</h2>
+  <div class="card">
+    <div class="card-title">🌳 Обход DOM-дерева</div>
+    <button class="btn btn-secondary" onclick="traverseDOM()">Обойти дерево</button>
+    <button class="btn btn-secondary" onclick="showFullTree()">Показать полное дерево</button>
+    <button class="btn btn-secondary" onclick="showElementTree()">Показать только элементы</button>
+    <div id="domTreeDisplay" class="tree-view" style="margin-top:15px;">
+      Нажмите кнопку, чтобы увидеть структуру DOM...
+    </div>
+  </div>
+
+  <!-- =============================================== -->
+  <!-- БЛОК 6: ПРАКТИЧЕСКОЕ ЗАДАНИЕ (ГАЛЕРЕЯ)          -->
+  <!-- =============================================== -->
+  <h2>6. Практическое задание</h2>
+  <div class="card" style="background:#1a1a3e;border:2px solid #e94560;">
+    <div class="card-title">🖼️ Интерактивная галерея</div>
+    <p style="color:#aaa;margin-bottom:15px;">
+      Создайте галерею изображений с возможностью добавления, удаления и выбора элементов
+    </p>
+    <div id="gallery">
+      <div class="gallery-item" data-id="1">Фото 1</div>
+      <div class="gallery-item" data-id="2">Фото 2</div>
+      <div class="gallery-item" data-id="3">Фото 3</div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin:15px 0;">
+      <input type="text" id="galleryInput" placeholder="Название элемента..." style="max-width:200px;">
+      <button class="btn btn-success" onclick="addGalleryItem()">Добавить</button>
+      <button class="btn btn-danger" onclick="removeSelectedGalleryItem()">Удалить выбранный</button>
+      <button class="btn btn-warning" onclick="clearGallery()">Очистить галерею</button>
+    </div>
+    <div id="galleryStatus" style="color:#aaa;font-size:14px;">
+      Выбрано: <span id="selectedGalleryItem">ничего</span>
+    </div>
+  </div>
+
+  <!-- =============================================== -->
+  <!-- БЛОК 7: САМОСТОЯТЕЛЬНОЕ ЗАДАНИЕ 2 — ПОИСК ТЕКСТА-->
+  <!-- =============================================== -->
+  <h2>7. Самостоятельное задание: поиск по тексту</h2>
+  <div class="card">
+    <div class="card-title">🔎 Подсветка элементов, содержащих текст</div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+      <input type="text" id="pageSearchInput" placeholder="Что искать на странице...">
+      <button class="btn btn-success" onclick="highlightByText()">Найти и подсветить</button>
+      <button class="btn btn-secondary" onclick="clearTextHighlight()">Снять подсветку</button>
+    </div>
+    <div id="pageSearchResult" style="margin-top:15px;background:#0f0f2a;padding:12px;border-radius:6px;font-size:14px;min-height:50px;color:#aaa;">
+      Введите текст для поиска...
+    </div>
+  </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
