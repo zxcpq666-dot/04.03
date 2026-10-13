@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Система тегов для блога — Set, Map, Array</title>
+<style>
+  :root {
+    --bg: #f6f7fb;
+    --card: #ffffff;
+    --accent: #3b6ef5;
+    --accent-dark: #2b55cc;
+    --danger: #e5484d;
+    --border: #e2e5ee;
+    --text: #1f2430;
+    --muted: #8a90a2;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px;
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  h1 { font-size: 24px; margin: 0 0 20px; }
+  h2 { font-size: 18px; margin: 0 0 12px; }
+  h3 { font-size: 16px; margin: 12px 0 8px; }
+
+  .layout {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+    max-width: 1200px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 2px 8px rgba(31, 36, 48, .05);
+  }
+  .card--wide { grid-column: 1 / -1; }
+
+  button {
+    font: inherit;
+    padding: 8px 14px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  button:hover { background: var(--accent-dark); }
+  button.secondary {
+    background: #fff;
+    color: var(--text);
+    border-color: var(--border);
+  }
+  button.secondary:hover { background: #f0f2f8; }
+  button.danger { background: var(--danger); }
+  button.danger:hover { background: #c93a3f; }
+
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  input[type="text"] {
+    font: inherit;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    flex: 1 1 160px;
+    min-width: 0;
+  }
+  input[type="text"]:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+
+  .counter { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+  .counter strong { color: var(--accent); font-size: 16px; }
+
+  /* Облако тегов */
+  #currentTags { margin: 14px 0; min-height: 38px; }
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #eaf0ff;
+    color: var(--accent-dark);
+    border-radius: 999px;
+    padding: 4px 6px 4px 12px;
+    margin: 0 6px 6px 0;
+    font-size: 14px;
+  }
+  .remove-tag {
+    background: transparent;
+    border: none;
+    color: var(--accent-dark);
+    font-size: 16px;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .remove-tag:hover { background: #d3e0ff; }
+
+  .empty { color: var(--muted); font-style: italic; }
+
+  table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+  th, td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; }
+  th { background: #f0f2f8; }
+  td:last-child, th:last-child { text-align: right; }
+
+  .all-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .all-tags span {
+    background: #f0f2f8;
+    border-radius: 6px;
+    padding: 3px 10px;
+    font-size: 14px;
+  }
+
+  pre {
+    background: #1f2430;
+    color: #d7e0f5;
+    padding: 12px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 13px;
+    margin: 10px 0 0;
+  }
+</style>
+</head>
+<body>
+
+<h1>📝 Система тегов для блога</h1>
+
+<div class="layout">
+
+  <!-- ============ Блок «Текущая статья» ============ -->
+  <section class="card">
+    <h2>Текущая статья</h2>
+    <p class="counter">Статей сохранено: <strong id="articleCounter">0</strong></p>
+
+    <div class="row">
+      <input type="text" id="tagInput" placeholder="Введите тег (например, JavaScript)">
+      <button id="addTagBtn">Добавить тег</button>
+    </div>
+
+    <div id="currentTags"></div>
+
+    <div class="row">
+      <button id="saveArticleBtn">Сохранить статью</button>
+      <button id="cancelArticleBtn" class="secondary">Отменить статью</button>
+    </div>
+  </section>
+
+  <!-- ============ Блок «Глобальная статистика» ============ -->
+  <section class="card">
+    <h2>Глобальная статистика</h2>
+    <button id="showStatsBtn">Показать статистику тегов</button>
+    <div id="statsOutput"></div>
+  </section>
+
+  <!-- ============ Блок «Все уникальные теги» ============ -->
+  <section class="card">
+    <h2>Все уникальные теги</h2>
+    <button id="showAllTagsBtn">Показать все теги</button>
+    <div id="allTagsOutput"></div>
+  </section>
+
+  <!-- ============ Дополнительно: задания 2–4 ============ -->
+  <section class="card card--wide">
+    <h2>Дополнительно (задания 2–4)</h2>
+
+    <h3>Задание 2. Индекс «тег → статьи» (Map + Set)</h3>
+    <button id="showIndexBtn" class="secondary">Показать индекс тегов</button>
+    <pre id="indexOutput">—</pre>
+
+    <h3>Задание 3. Пересечение тегов двух статей</h3>
+    <button id="showIntersectionBtn" class="secondary">Показать пересечение</button>
+    <pre id="intersectionOutput">—</pre>
+
+    <h3>Задание 4. WeakMap-кэш количества тегов</h3>
+    <button id="showWeakMapBtn" class="secondary">Демонстрация WeakMap</button>
+    <pre id="weakMapOutput">—</pre>
+  </section>
+
+</div>
+
+<script>
+/* =========================================================
+   ШАГ 1. ИНИЦИАЛИЗАЦИЯ ГЛОБАЛЬНЫХ СТРУКТУР ДАННЫХ
+   ========================================================= */
+
+// Set — теги текущей (редактируемой) статьи. Уникальность гарантирована.
+let currentArticleTags = new Set();
+
+// Map — глобальная статистика: тег (строка в нижнем регистре) -> число статей
+const tagStats = new Map();
+
+// Массив всех тегов, когда-либо использованных (без дубликатов)
+const allTagsEver = [];
+
+// Счётчик сохранённых статей
+let articleCount = 0;
+
+// Дополнительно (Задание 2): индекс «тег -> Set(номеров статей)»
+const tagToArticles = new Map();
+
+// Дополнительно (Задание 4): кэш вычислений для объектов статей
+const articleCache = new WeakMap();
+
+
+/* =========================================================
+   ВСПОМОГАТЕЛЬНОЕ: экранирование HTML (защита от XSS)
+   ========================================================= */
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, ch => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[ch]));
+}
+
+
+/* =========================================================
+   ШАГ 2. ДОБАВЛЕНИЕ ТЕГА К ТЕКУЩЕЙ СТАТЬЕ (Set)
+   ========================================================= */
+function addTagToCurrentArticle() {
+  const input = document.getElementById('tagInput');
+  const rawTag = input.value.trim();
+
+  // Пустую строку игнорируем
+  if (rawTag === '') return;
+
+  // Приводим к нижнему регистру: "JavaScript" и "javascript" — один тег
+  const tag = rawTag.toLowerCase();
+
+  // has() — проверка наличия. Нужна только для информативного сообщения:
+  // add() всё равно проигнорирует дубликат.
+  const alreadyExists = currentArticleTags.has(tag);
+  if (alreadyExists) {
+    console.log(`Тег "${tag}" уже добавлен к этой статье`);
+  }
+
+  currentArticleTags.add(tag); // дубликат автоматически игнорируется
+
+  input.value = '';
+  input.focus();
+
+  renderCurrentTags();
+}
+
+
+/* =========================================================
+   ШАГ 3. УДАЛЕНИЕ ТЕГА ИЗ ТЕКУЩЕЙ СТАТЬИ (Set)
+   ========================================================= */
+function removeTagFromCurrentArticle(tag) {
+  // delete() вернёт true, если элемент был и удалён; false — если его не было
+  currentArticleTags.delete(tag);
+  renderCurrentTags();
+}
+
+
+/* =========================================================
+   ШАГ 4. ОТОБРАЖЕНИЕ ТЕКУЩИХ ТЕГОВ (Set -> Array)
+   ========================================================= */
+function renderCurrentTags() {
+  const container = document.getElementById('currentTags');
+
+  if (currentArticleTags.size === 0) {
+    container.innerHTML = '<p class="empty">Теги не добавлены</p>';
+    return;
+  }
+
+  // Конвертация Set -> Array (у Set нет map/join)
+  const tagsArray = [...currentArticleTags];          // spread-оператор
+  // Альтернатива: const tagsArray = Array.from(currentArticleTags);
+
+  const tagsHtml = tagsArray.map(tag => `
+    <span class="tag">
+      ${escapeHtml(tag)}
+      <button class="remove-tag" data-tag="${escapeHtml(tag)}"
+              title="Удалить тег" aria-label="Удалить тег">&times;</button>
+    </span>`).join('');
+
+  container.innerHTML =
+    tagsHtml +
+    `<p class="counter">Всего тегов: <strong>${currentArticleTags.size}</strong></p>`;
+}
+
+// Делегирование событий: один обработчик на контейнер вместо onclick в каждом теге
+document.getElementById('currentTags').addEventListener('click', (event) => {
+  const btn = event.target.closest('.remove-tag');
+  if (!btn) return;
+  removeTagFromCurrentArticle(btn.dataset.tag);
+});
+
+
+/* =========================================================
+   ШАГ 5. СОХРАНЕНИЕ СТАТЬИ (Set -> Map, обновление статистики)
+   ========================================================= */
+function saveArticle() {
+  if (currentArticleTags.size === 0) {
+    alert('Добавьте хотя бы один тег перед сохранением!');
+    return;
+  }
+
+  // 1. Счётчик статей
+  articleCount++;
+  document.getElementById('articleCounter').textContent = articleCount;
+
+  // 2. Создаём объект статьи (для Задания 2 и 4)
+  const articleObject = {
+    id: articleCount,
+    tags: new Set(currentArticleTags) // копия тегов «на момент сохранения»
+  };
+
+  // Задание 2: индексируем статью по тегам
+  addArticleToTagIndex(articleObject.id, currentArticleTags);
+
+  // Задание 4: кладём в WeakMap результат вычисления
+  getTagCount(articleObject);
+
+  // 3. Обновляем глобальную статистику (Map)
+  currentArticleTags.forEach(tag => {
+    if (tagStats.has(tag)) {
+      // get() + set(): увеличиваем счётчик
+      tagStats.set(tag, tagStats.get(tag) + 1);
+    } else {
+      // Первое использование тега
+      tagStats.set(tag, 1);
+    }
+
+    // Пополняем список всех тегов (без дубликатов).
+    // ВНИМАНИЕ: в исходном методическом примере здесь была опечатка —
+    // условие написано без «!», из-за чего теги НЕ добавлялись.
+    if (!allTagsEver.includes(tag)) {
+      allTagsEver.push(tag);
+    }
+  });
+
+  // 4. Очищаем теги текущей статьи (Set полностью очищен)
+  currentArticleTags.clear();
+
+  // 5. Обновляем отображение
+  renderCurrentTags();
+
+  // Если статистика уже открыта — обновляем её на лету
+  if (document.getElementById('statsOutput').innerHTML !== '') showStats();
+
+  console.log('Статистика после сохранения:');
+  console.log('tagStats Map:', tagStats);
+  console.log('allTagsEver:', allTagsEver);
+  console.log('tagToArticles:', tagToArticles);
+}
+
+
+/* =========================================================
+   ОТМЕНА СТАТЬИ — очистка без сохранения в статистику
+   ========================================================= */
+function cancelArticle() {
+  currentArticleTags.clear();
+  renderCurrentTags();
+}
+
+
+/* =========================================================
+   ШАГ 6. ОТОБРАЖЕНИЕ ГЛОБАЛЬНОЙ СТАТИСТИКИ (перебор Map)
+   ========================================================= */
+function showStats() {
+  const output = document.getElementById('statsOutput');
+
+  if (tagStats.size === 0) {
+    output.innerHTML = '<p class="empty">Нет данных. Сохраните хотя бы одну статью.</p>';
+    return;
+  }
+
+  // Map -> массив пар [ключ, значение] и сортировка по убыванию количества
+  const sortedStats = [...tagStats.entries()]      // [["js",5], ["react",3], ...]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+
+  let html = '<h3>Статистика использования тегов</h3>';
+  html += '<table><thead><tr><th>Тег</th><th>Статей</th></tr></thead><tbody>';
+  sortedStats.forEach(([tag, count]) => {
+    html += `<tr><td>${escapeHtml(tag)}</td><td>${count}</td></tr>`;
+  });
+  html += '</tbody></table>';
+  html += `<p class="counter">Всего уникальных тегов: <strong>${tagStats.size}</strong></p>`;
+
+  output.innerHTML = html;
+}
+
+
+/* =========================================================
+   ШАГ 7. ОТОБРАЖЕНИЕ ВСЕХ УНИКАЛЬНЫХ ТЕГОВ
+   ========================================================= */
+function showAllTags() {
+  const output = document.getElementById('allTagsOutput');
+
+  if (allTagsEver.length === 0) {
+    output.innerHTML = '<p class="empty">Теги ещё не создавались.</p>';
+    return;
+  }
+
+  // Копируем массив и сортируем по алфавиту (исходный не мутируем)
+  const sorted = [...allTagsEver].sort();
+
+  output.innerHTML = `
+    <h3>Все теги (${sorted.length})</h3>
+    <div class="all-tags">
+      ${sorted.map(tag => `<span>${escapeHtml(tag)}</span>`).join('')}
+    </div>
+    <p class="counter">Строкой: ${escapeHtml(sorted.join(', '))}</p>`;
+}
+
+
+/* =========================================================
+   ЗАДАНИЕ 2. ИНДЕКС «ТЕГ -> СТАТЬИ» (Map тег -> Set(id статей))
+   ========================================================= */
+// Структура:
+//   "js"    => Set(1, 3, 5)
+//   "react" => Set(2, 3)
+function addArticleToTagIndex(articleId, tags) {
+  tags.forEach(tag => {
+    if (!tagToArticles.has(tag)) {
+      tagToArticles.set(tag, new Set());   // создаём Set для нового тега
+    }
+    tagToArticles.get(tag).add(articleId); // уникальность id гарантирует Set
+  });
+}
+
+function showTagIndex() {
+  const out = document.getElementById('indexOutput');
+  if (tagToArticles.size === 0) {
+    out.textContent = 'Индекс пуст — сохраните хотя бы одну статью.';
+    return;
+  }
+  const lines = [...tagToArticles.entries()]
+    .sort((a, b) => b[1].size - a[1].size)
+    .map(([tag, ids]) =>
+      `${tag.padEnd(12)} -> Set(${[...ids].sort((x, y) => x - y).join(', ')})  ` +
+      `[статей: ${ids.size}]`);
+  out.textContent = lines.join('\n');
+}
+
+
+/* =========================================================
+   ЗАДАНИЕ 3. ПЕРЕСЕЧЕНИЕ ТЕГОВ ДВУХ СТАТЕЙ
+   ========================================================= */
+function commonTags(setA, setB) {
+  // Современный способ (ES2024+, поддерживается не везде):
+  // return setA.intersection(setB);
+
+  // Кросс-браузерный способ: фильтруем элементы Set A по наличию в Set B.
+  // Сложность O(n) вместо O(n*m) у «наивного» двойного цикла,
+  // потому что setB.has() работает за O(1).
+  return new Set([...setA].filter(tag => setB.has(tag)));
+}
+
+function showIntersection() {
+  const setA = new Set(['javascript', 'react', 'css', 'node']);
+  const setB = new Set(['react', 'vue', 'css', 'typescript']);
+  const common = commonTags(setA, setB);
+
+  document.getElementById('intersectionOutput').textContent =
+    `Статья A: {${[...setA].join(', ')}}\n` +
+    `Статья B: {${[...setB].join(', ')}}\n` +
+    `Общие теги (${common.size}): {${[...common].join(', ')}}`;
+}
+
+
+/* =========================================================
+   ЗАДАНИЕ 4. WeakMap — кэш вычислений для объектов статей
+   ========================================================= */
+// Ключом WeakMap может быть ТОЛЬКО объект. Когда объект статьи
+// становится недостижимым, запись в WeakMap удаляется сборщиком мусора
+// автоматически — утечки памяти не будет.
+function getTagCount(articleObject) {
+  if (articleCache.has(articleObject)) {
+    return articleCache.get(articleObject); // попадание в кэш
+  }
+  const count = articleObject.tags.size;
+  articleCache.set(articleObject, count);   // промах: считаем и кэшируем
+  return count;
+}
+
+// WeakSet — множество объектов без дубликатов.
+// Не итерируется, нет .size: объект либо «помечен», либо нет.
+const processedArticles = new WeakSet();
+
+function markAsProcessed(articleObject) {
+  processedArticles.add(articleObject);
+}
+function isProcessed(articleObject) {
+  return processedArticles.has(articleObject);
+}
+
+function showWeakMapDemo() {
+  const article1 = { id: 1, tags: new Set(['js', 'react']) };
+  const article2 = { id: 2, tags: new Set(['js']) };
+
+  const log = [];
+
+  log.push(`article1 — первый вызов getTagCount(): ${getTagCount(article1)} (вычислено и закэшировано)`);
+  log.push(`article1 — повторный вызов:              ${getTagCount(article1)} (взято из кэша)`);
+
+  article1.tags.add('css'); // меняем объект ПОСЛЕ кэширования
+  log.push(`article1.tags.size теперь = ${article1.tags.size}, а кэш всё ещё возвращает ${getTagCount(article1)}`);
+  log.push('→ Вывод: кэш нужно инвалидировать при изменении объекта.');
+
+  log.push(`article2 — getTagCount(): ${getTagCount(article2)}`);
+
+  markAsProcessed(article1);
+  log.push(`article1 помечена как обработанная: ${isProcessed(article1)}`);
+  log.push(`article2 помечена как обработанная: ${isProcessed(article2)}`);
+
+  log.push('');
+  log.push(`articleCache instanceof WeakMap: ${articleCache instanceof WeakMap}`);
+  log.push('Особенности WeakMap/WeakSet: ключи только объекты,');
+  log.push('нет size, нет итераторов (forEach/keys/values),');
+  log.push('записи удаляются сборщиком мусора автоматически.');
+
+  document.getElementById('weakMapOutput').textContent = log.join('\n');
+}
+
+
+/* =========================================================
+   ПРИВЯЗКА ОБРАБОТЧИКОВ
+   ========================================================= */
+document.getElementById('addTagBtn').addEventListener('click', addTagToCurrentArticle);
+
+document.getElementById('tagInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') addTagToCurrentArticle();
+});
+
+document.getElementById('saveArticleBtn').addEventListener('click', saveArticle);
+document.getElementById('cancelArticleBtn').addEventListener('click', cancelArticle);
+document.getElementById('showStatsBtn').addEventListener('click', showStats);
+document.getElementById('showAllTagsBtn').addEventListener('click', showAllTags);
+
+document.getElementById('showIndexBtn').addEventListener('click', showTagIndex);
+document.getElementById('showIntersectionBtn').addEventListener('click', showIntersection);
+document.getElementById('showWeakMapBtn').addEventListener('click', showWeakMapDemo);
+
+// Первичный рендер
+renderCurrentTags();
+</script>
+</body>
+</html>
