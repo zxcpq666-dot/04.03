@@ -1,0 +1,161 @@
+/* Общие стили */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #e0e5ec 0%, #c9d0df 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    transition: background 0.3s, color 0.3s;
+}
+
+/* ЗАДАНИЕ 4: Темная тема */
+body.dark-theme {
+    background: #121212;
+    color: #e0e0e0;
+}
+body.dark-theme .container { background: #1e1e1e; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+body.dark-theme h1 { color: #fff; }
+body.dark-theme .form-group label { color: #ccc; }
+body.dark-theme .form-group input, body.dark-theme select {
+    background: #2c2c2c; border-color: #444; color: #fff;
+}
+body.dark-theme .form-group input:focus { background: #333; }
+
+.container {
+    max-width: 480px;
+    width: 100%;
+    background: white;
+    border-radius: 24px;
+    padding: 30px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    position: relative;
+}
+
+.theme-btn {
+    position: absolute; top: 20px; right: 20px;
+    background: none; border: none; font-size: 24px; cursor: pointer;
+    transition: transform 0.2s;
+}
+.theme-btn:hover { transform: scale(1.1); }
+
+h1 { font-size: 24px; color: #1a1a2e; text-align: center; margin-bottom: 24px; font-weight: 600; }
+
+/* ==============================================
+   3D КАРТОЧКА (ЗАДАНИЕ 7)
+   ============================================== */
+.card-scene {
+    perspective: 1000px;
+    margin-bottom: 28px;
+}
+
+.card {
+    width: 100%;
+    min-height: 210px;
+    position: relative;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+
+.card.flip {
+    transform: rotateY(180deg);
+}
+
+.card-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 16px;
+    padding: 24px 20px 20px;
+    color: white;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    transition: background 0.3s ease;
+}
+
+.card-back {
+    transform: rotateY(180deg);
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+/* Магнитная полоса для обратной стороны */
+.card-magnetic-strip {
+    height: 40px;
+    background: #000;
+    margin: 10px 0 20px;
+    width: 100%;
+}
+.card-cvv-display {
+    background: white; color: black; padding: 10px; text-align: right;
+    border-radius: 4px; font-family: 'Courier New', monospace; font-size: 16px; width: 60px; margin-left: auto;
+}
+
+/* Бренды */
+.card-brand { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+.brand-icon { font-size: 28px; }
+.brand-name { font-size: 14px; font-weight: 500; opacity: 0.9; background: rgba(255, 255, 255, 0.1); padding: 4px 12px; border-radius: 12px; letter-spacing: 0.5px; }
+
+.card-number-display { font-size: 22px; font-weight: 500; letter-spacing: 3px; margin-bottom: 20px; font-family: 'Courier New', monospace; word-break: break-all; }
+.card-bottom { display: flex; justify-content: space-between; gap: 10px; }
+.card-holder { flex: 1; }
+.card-expiry { flex: 0 0 70px; }
+.card-currency { flex: 0 0 50px; text-align: right; }
+
+.card-bottom .label { font-size: 10px; text-transform: uppercase; opacity: 0.6; letter-spacing: 0.5px; margin-bottom: 4px; }
+.card-bottom .value { font-size: 14px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; min-height: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Цвета карт */
+.card.visa .card-front { background: linear-gradient(135deg, #1a1f71 0%, #0d47a1 100%); }
+.card.mastercard .card-front { background: linear-gradient(135deg, #eb001b 0%, #f79e1b 50%, #ff5f00 100%); }
+.card.mir .card-front { background: linear-gradient(135deg, #00b8b8 0%, #008080 100%); }
+.card.amex .card-front { background: linear-gradient(135deg, #006fcf 0%, #003d7a 100%); }
+.card.discover .card-front { background: linear-gradient(135deg, #ff6b00 0%, #e65100 100%); }
+.card.jcb .card-front { background: linear-gradient(135deg, #007b3d 0%, #004d20 100%); }
+/* ЗАДАНИЕ 1: Стиль для UnionPay */
+.card.unionpay .card-front { background: linear-gradient(135deg, #d52b1e 0%, #b71c1c 100%); }
+
+/* ==============================================
+   ФОРМА
+   ============================================== */
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 13px; font-weight: 600; color: #1a1a2e; margin-bottom: 5px; transition: color 0.3s; }
+.form-group input, .form-group select {
+    width: 100%; padding: 12px 16px; border: 2px solid #e0e5ec; border-radius: 10px;
+    font-size: 16px; transition: all 0.3s; background: #f8f9fc;
+    font-family: 'Courier New', monospace; letter-spacing: 1px;
+}
+.form-group select { font-family: 'Segoe UI', sans-serif; cursor: pointer; }
+.form-group input:focus, .form-group select:focus { outline: none; border-color: #4a6cf7; box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.15); background: white; }
+.form-group input.error { border-color: #dc3545; background: #fff5f5; }
+
+.form-row { display: flex; gap: 16px; }
+.form-group.half { flex: 1; }
+.error-message { display: block; font-size: 12px; color: #dc3545; min-height: 18px; margin-top: 3px; }
+
+#submit-btn {
+    width: 100%; padding: 14px; background: linear-gradient(135deg, #4a6cf7 0%, #6c5ce7 100%);
+    color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: 600;
+    cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; margin-top: 8px;
+}
+#submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(74, 108, 247, 0.35); }
+#submit-btn:active { transform: translateY(0); }
+#submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+.success-message {
+    display: none; text-align: center; padding: 20px; background: #d4edda; color: #155724;
+    border-radius: 10px; margin-top: 16px; font-weight: 500;
+}
+.success-message.show { display: block; animation: fadeIn 0.5s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (max-width: 480px) {
+    .container { padding: 16px; }
+    .card-face { padding: 18px 16px 16px; min-height: 180px; }
+    .card-number-display { font-size: 18px; letter-spacing: 2px; }
+    .form-row { flex-direction: column; gap: 0; }
+    .form-group input { font-size: 14px; padding: 10px 14px; }
+}

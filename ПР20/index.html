@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Форма кредитной карты</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- ЗАДАНИЕ 4: Кнопка темной темы -->
+        <button id="theme-toggle" class="theme-btn">🌙</button>
+        
+        <h1>💳 Оплата картой</h1>
+
+        <!-- 3D Карточка (ЗАДАНИЕ 7) -->
+        <div class="card-scene">
+            <div class="card" id="card">
+                <!-- Лицевая сторона -->
+                <div class="card-face card-front">
+                    <div class="card-brand">
+                        <span class="brand-icon" id="brand-icon">💳</span>
+                        <span class="brand-name" id="brand-name">Банковская карта</span>
+                    </div>
+                    
+                    <div class="card-number-display" id="card-number-display">
+                        •••• •••• •••• ••••
+                    </div>
+                    
+                    <div class="card-bottom">
+                        <div class="card-holder">
+                            <div class="label">Владелец</div>
+                            <div class="value" id="card-holder-display">ИМЯ ФАМИЛИЯ</div>
+                        </div>
+                        <div class="card-expiry">
+                            <div class="label">Срок</div>
+                            <div class="value" id="card-expiry-display">ММ/YY</div>
+                        </div>
+                        <div class="card-currency">
+                            <div class="label">Валюта</div>
+                            <!-- ЗАДАНИЕ 6: Отображение валюты -->
+                            <div class="value" id="card-currency-display">₽</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Обратная сторона (для 3D-поворота) -->
+                <div class="card-face card-back">
+                    <div class="card-magnetic-strip"></div>
+                    <div class="card-cvv-display">
+                        <div class="label">CVV/CVC</div>
+                        <div class="value" id="card-cvv-display">•••</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form id="card-form">
+            <div class="form-group">
+                <label for="card-number">Номер карты</label>
+                <input type="text" id="card-number" placeholder="0000 0000 0000 0000" maxlength="19" autocomplete="cc-number">
+                <span class="error-message" id="number-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="card-holder">Владелец карты</label>
+                <input type="text" id="card-holder" placeholder="IVAN PETROV" autocomplete="cc-name">
+                <span class="error-message" id="holder-error"></span>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group half">
+                    <label for="card-expiry">Срок действия</label>
+                    <input type="text" id="card-expiry" placeholder="ММ/YY" maxlength="5" autocomplete="cc-exp">
+                    <span class="error-message" id="expiry-error"></span>
+                </div>
+                <div class="form-group half">
+                    <label for="card-cvv">CVV/CVC</label>
+                    <!-- ЗАДАНИЕ 2: Маска для CVV через type="password" -->
+                    <input type="password" id="card-cvv" placeholder="•••" maxlength="4" autocomplete="cc-csc">
+                    <span class="error-message" id="cvv-error"></span>
+                </div>
+            </div>
+
+            <!-- ЗАДАНИЕ 6: Выбор валюты -->
+            <div class="form-group">
+                <label for="currency-select">Валюта оплаты</label>
+                <select id="currency-select">
+                    <option value="₽">RUB (₽)</option>
+                    <option value="$">USD ($)</option>
+                    <option value="€">EUR (€)</option>
+                </select>
+            </div>
+
+            <button type="submit" id="submit-btn">Оплатить</button>
+        </form>
+
+        <div class="success-message" id="success-message">
+            ✅ Оплата успешно выполнена!
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
