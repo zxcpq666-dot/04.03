@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Простейший чат с ботом</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="chat-container">
+        <!-- Заголовок -->
+        <div class="chat-header">
+            <h2>Чат-бот</h2>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <!-- ЗАДАНИЕ 7: Переключатель языка -->
+                <button id="lang-btn" style="background: rgba(255,255,255,0.2); border: 1px solid white; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">EN</button>
+                <span class="status online">● Онлайн</span>
+            </div>
+        </div>
+        
+        <!-- Область сообщений -->
+        <div class="chat-messages" id="chat-messages">
+            <!-- Сообщения будут добавляться сюда через JS -->
+        </div>
+
+        <!-- Индикатор печатания -->
+        <div class="typing-indicator" id="typing-indicator">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+        <!-- Область ввода -->
+        <div class="chat-input-area">
+            <input type="text" id="message-input" placeholder="Введите сообщение..." autofocus>
+            <button id="send-button">➤</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
