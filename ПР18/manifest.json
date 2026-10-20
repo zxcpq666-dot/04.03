@@ -1,0 +1,17 @@
+{
+  "manifest_version": 2,
+  "name": "PR18 Super Extension",
+  "version": "1.0",
+  "description": "Все задания ПР18 в одном",
+  "permissions": ["activeTab", "storage"],
+  "browser_action": {
+    "default_title": "Управление",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<style>
+    body { width: 200px; padding: 10px; font-family: Arial; background: #f5f7fa; margin: 0; }
+    h2 { text-align: center; font-size: 16px; margin: 0 0 10px; }
+    .count { text-align: center; font-size: 12px; margin-bottom: 10px; }
+    button { width: 100%; padding: 8px; margin-bottom: 5px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: white; }
+    .row { display: flex; gap: 5px; }
+    .row button { flex: 1; }
+    #hello { background: #4CAF50; }
+    #blue { background: #2196F3; }
+    #reset { background: #9E9E9E; }
+    #f-plus, #f-minus { background: #9c27b0; }
+    #dark { background: #333; }
+    #note { background: #00bcd4; }
+</style>
+</head>
+<body>
+    <h2>Задания ПР18</h2>
+    <div class="count">Кликов Hello: <span id="clicks">0</span></div>
+    
+    <button id="hello">Hello World!</button>
+    <div class="row">
+        <button id="blue">Синий</button>
+        <button id="reset">Сброс</button>
+    </div>
+    <div class="row">
+        <button id="f-plus">Шрифт +</button>
+        <button id="f-minus">Шрифт -</button>
+    </div>
+    <button id="dark">Темная тема</button>
+    <button id="note">Заметка 📝</button>
+
+<script>
+    const send = (cmd) => browser.tabs.query({active: true, currentWindow: true}).then(tabs => browser.tabs.sendMessage(tabs[0].id, {cmd}));
+    
+    // Задание 4: Счетчик
+    let clicks = 0;
+    const clicksSpan = document.getElementById('clicks');
+    browser.storage.local.get('c').then(r => { clicks = r.c || 0; clicksSpan.textContent = clicks; });
+
+    document.getElementById('hello').onclick = () => {
+        send('hello');
+        clicks++;
+        clicksSpan.textContent = clicks;
+        browser.storage.local.set({c: clicks});
+    };
+    
+    document.getElementById('blue').onclick = () => send('blue');
+    document.getElementById('reset').onclick = () => send('reset');
+    document.getElementById('f-plus').onclick = () => send('font+');
+    document.getElementById('f-minus').onclick = () => send('font-');
+    document.getElementById('dark').onclick = () => send('dark');
+    document.getElementById('note').onclick = () => send('note');
+</script>
+</body>
+</html>
