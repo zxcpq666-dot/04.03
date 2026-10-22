@@ -1,0 +1,522 @@
+/* =============================================
+   ОБЩИЕ СТИЛИ
+   ============================================= */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f0f2f5;
+  min-height: 100vh;
+  padding: 30px 20px;
+  display: flex;
+  justify-content: center;
+  color: #1a1a2e;
+}
+
+.container { max-width: 760px; width: 100%; }
+
+h1 { text-align: center; font-weight: 600; font-size: 28px; margin-bottom: 4px; }
+.subtitle { text-align: center; color: #666; font-size: 14px; margin-bottom: 24px; }
+
+.hidden { display: none !important; }
+
+/* =============================================
+   ВИДЖЕТ
+   ============================================= */
+.widget-container {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+  border: 1px solid #e9ecef;
+  overflow: visible;            /* чтобы не обрезать выпадающие уведомления */
+}
+
+.widget-header {
+  background: #0047ab;
+  padding: 14px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 16px 16px 0 0;
+}
+
+.widget-logo {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.widget-header-right { display: flex; align-items: center; gap: 12px; }
+
+.widget-status {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 4px 14px;
+  border-radius: 20px;
+  white-space: nowrap;
+  transition: background 0.3s;
+}
+.widget-status.authorized   { background: rgba(76, 175, 80, 0.45); }
+.widget-status.unauthorized { background: rgba(255, 193, 7, 0.45); }
+
+/* ---------- Уведомления (Задание 6) ---------- */
+.notif-wrapper { position: relative; }
+
+.notif-btn {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+.notif-btn:hover { background: rgba(255, 255, 255, 0.3); }
+
+.notif-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: #ff4757;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.notif-dropdown {
+  position: absolute;
+  right: 0;
+  top: 44px;
+  width: 320px;
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+  display: none;
+  z-index: 100;
+}
+.notif-dropdown.open { display: block; }
+
+.notif-dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  border-bottom: 1px solid #eef1f5;
+}
+#notif-read-all {
+  background: none;
+  border: none;
+  color: #0047ab;
+  font-size: 12px;
+  cursor: pointer;
+}
+#notif-read-all:hover { text-decoration: underline; }
+
+.notif-list { list-style: none; max-height: 260px; overflow-y: auto; }
+
+.notif-item {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f1f3f6;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #1a1a2e;
+}
+.notif-item:last-child { border-bottom: none; }
+.notif-item.unread { background: #eef4ff; }
+.notif-item.read { color: #8a8f98; }
+.notif-time { font-size: 11px; color: #999; }
+.notif-empty { padding: 14px; text-align: center; font-size: 13px; color: #999; }
+
+/* ---------- Контент виджета ---------- */
+.widget-content {
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  min-height: 200px;
+}
+
+.service-list h3 {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.service-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+.service-item:hover { background: #f5f7fa; transform: translateX(4px); }
+.service-item.active { background: #e8edf9; border-color: #0047ab; }
+
+.service-icon { font-size: 18px; margin-right: 10px; }
+.service-name { flex: 1; font-size: 14px; }
+
+.service-status {
+  font-size: 11px;
+  color: #4caf50;
+  background: #e8f5e9;
+  padding: 2px 10px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.service-detail {
+  background: #f8f9fc;
+  border-radius: 10px;
+  padding: 16px;
+  min-height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.service-detail .hint { color: #999; font-size: 14px; text-align: center; }
+
+.service-detail-result { width: 100%; font-size: 14px; line-height: 1.6; }
+.service-detail-result h4 { margin-bottom: 6px; font-size: 16px; }
+.service-description { color: #666; font-size: 13px; margin-bottom: 10px; }
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 0;
+  border-bottom: 1px dashed #e3e8ef;
+  font-size: 13px;
+}
+.detail-row:last-child { border-bottom: none; }
+.detail-label { color: #7a8290; }
+.detail-value { color: #1a1a2e; text-align: right; }
+
+.detail-applications {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #e3e8ef;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.status-done     { color: #2e7d32; background: #e8f5e9; }
+.status-progress { color: #b26a00; background: #fff4e0; }
+.status-new      { color: #0047ab; background: #e8edf9; }
+
+.btn-apply {
+  margin-top: 12px;
+  width: 100%;
+  padding: 9px 16px;
+  background: #0047ab;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-apply:hover { background: #003380; }
+.btn-apply:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ---------- Подвал виджета ---------- */
+.widget-footer {
+  padding: 12px 20px;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  border-radius: 0 0 16px 16px;
+}
+
+.btn-refresh {
+  background: none;
+  border: none;
+  color: #0047ab;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+.btn-refresh:hover { background: #e8edf9; }
+.btn-refresh:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.widget-info { font-size: 12px; color: #999; }
+
+/* =============================================
+   ЛИЧНЫЙ КАБИНЕТ (Задание 5)
+   ============================================= */
+.profile-section {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+}
+.profile-section h3 { font-size: 16px; margin-bottom: 12px; }
+.profile-section h4 { font-size: 14px; color: #444; margin: 16px 0 8px; }
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.profile-field {
+  background: #f8f9fc;
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.profile-field span {
+  font-size: 11px;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.profile-field strong { font-size: 13px; font-weight: 600; }
+
+.history-list { list-style: none; }
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f3f6;
+  font-size: 13px;
+}
+.history-item:last-child { border-bottom: none; }
+.history-service { flex: 1; }
+.history-date { font-size: 12px; color: #999; }
+.history-empty { font-size: 13px; color: #999; }
+
+/* =============================================
+   АВТОРИЗАЦИЯ
+   ============================================= */
+.auth-section {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+}
+.auth-section h3 { font-size: 16px; margin-bottom: 12px; }
+
+.auth-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+.auth-tab {
+  padding: 6px 14px;
+  border: 1px solid #dde1e6;
+  background: #f5f7fa;
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.auth-tab.active { background: #0047ab; border-color: #0047ab; color: #fff; }
+
+.auth-form { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.auth-form input {
+  flex: 1;
+  min-width: 150px;
+  padding: 10px 14px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.3s;
+}
+.auth-form input:focus { outline: none; border-color: #0047ab; }
+
+.auth-form button {
+  padding: 10px 24px;
+  background: #0047ab;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.auth-form button:hover { background: #003380; }
+.auth-form button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.auth-status { margin-top: 10px; font-size: 13px; color: #666; }
+.auth-status.success { color: #2e7d32; }
+.user-email { color: #888; font-size: 12px; margin-left: 6px; }
+
+.auth-hint { font-size: 12px; color: #999; margin-top: 8px; }
+
+.logout-btn {
+  margin-top: 10px;
+  padding: 8px 18px;
+  background: #dc3545;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.logout-btn:hover { background: #b02a37; }
+
+/* =============================================
+   API-ЗАПРОСЫ
+   ============================================= */
+.api-section {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+}
+.api-section h3 { font-size: 16px; margin-bottom: 12px; }
+
+.api-controls { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+
+.api-btn {
+  padding: 8px 18px;
+  background: #f5f7fa;
+  border: 1px solid #dde1e6;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.api-btn:hover { background: #e8edf9; border-color: #0047ab; }
+.api-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.api-response {
+  background: #1a1a2e;
+  color: #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  max-height: 240px;
+  overflow-y: auto;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.api-response pre { margin: 0; white-space: pre-wrap; word-break: break-word; }
+.api-response.success { color: #7ee787; }
+.api-response.error { color: #ff6b6b; }
+
+/* =============================================
+   ВСТРАИВАЕМЫЙ ВИДЖЕТ ПОС (Задание 7)
+   ============================================= */
+.embed-note { font-size: 12px; color: #999; margin-bottom: 10px; }
+
+.embed-code {
+  background: #f5f7fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+.pos-widget { border: 1px solid #dde1e6; border-radius: 12px; overflow: hidden; }
+.pos-widget-header {
+  background: #0047ab;
+  color: #fff;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+.pos-org { font-size: 11px; opacity: 0.85; }
+
+.pos-widget textarea {
+  width: 100%;
+  min-height: 80px;
+  border: none;
+  border-bottom: 1px solid #e9ecef;
+  padding: 12px 14px;
+  font-size: 13px;
+  font-family: inherit;
+  resize: vertical;
+}
+.pos-widget textarea:focus { outline: none; background: #f8fafc; }
+
+.pos-widget-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+}
+.pos-hint { font-size: 12px; color: #999; }
+.pos-hint.success { color: #2e7d32; }
+.pos-hint.error { color: #dc3545; }
+
+#pos-send {
+  padding: 8px 16px;
+  background: #0047ab;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+#pos-send:hover { background: #003380; }
+
+/* =============================================
+   АДАПТИВНОСТЬ
+   ============================================= */
+@media (max-width: 600px) {
+  .widget-content { grid-template-columns: 1fr; gap: 12px; }
+  .auth-form { flex-direction: column; }
+  .auth-form input { min-width: auto; }
+  .api-controls { flex-direction: column; }
+  .api-btn { width: 100%; }
+  .profile-grid { grid-template-columns: 1fr; }
+  .notif-dropdown { width: 260px; }
+}

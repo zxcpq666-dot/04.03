@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Демо: Виджет Госуслуг</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Демо-виджет Госуслуг</h1>
+    <p class="subtitle">Имитация работы с API государственных услуг</p>
+
+    <!-- ===================== ВИДЖЕТ ===================== -->
+    <div class="widget-container" id="widget-container">
+      <div class="widget-header">
+        <div class="widget-logo">Госуслуги</div>
+
+        <div class="widget-header-right">
+          <!-- Задание 6: уведомления -->
+          <div class="notif-wrapper">
+            <button class="notif-btn" id="notif-btn" type="button" title="Уведомления">
+              🔔<span class="notif-count" id="notif-count">0</span>
+            </button>
+            <div class="notif-dropdown" id="notif-dropdown">
+              <div class="notif-dropdown-header">
+                <span>Уведомления</span>
+                <button id="notif-read-all" type="button">Прочитать все</button>
+              </div>
+              <ul class="notif-list" id="notif-list"></ul>
+            </div>
+          </div>
+
+          <span class="widget-status" id="widget-status">● Подключено</span>
+        </div>
+      </div>
+
+      <div class="widget-content" id="widget-content">
+        <div class="service-list">
+          <h3>Доступные услуги</h3>
+
+          <div class="service-item" data-service="passport">
+            <span class="service-icon">🛂</span>
+            <span class="service-name">Загранпаспорт</span>
+            <span class="service-status">доступно</span>
+          </div>
+
+          <div class="service-item" data-service="tax">
+            <span class="service-icon">💰</span>
+            <span class="service-name">Налоговая задолженность</span>
+            <span class="service-status">доступно</span>
+          </div>
+
+          <div class="service-item" data-service="fines">
+            <span class="service-icon">🚗</span>
+            <span class="service-name">Штрафы ГИБДД</span>
+            <span class="service-status">доступно</span>
+          </div>
+
+          <div class="service-item" data-service="pfr">
+            <span class="service-icon">🧓</span>
+            <span class="service-name">Пенсионные накопления</span>
+            <span class="service-status">доступно</span>
+          </div>
+
+          <!-- Задание 1: новые услуги -->
+          <div class="service-item" data-service="doctor">
+            <span class="service-icon">🏥</span>
+            <span class="service-name">Запись к врачу</span>
+            <span class="service-status">доступно</span>
+          </div>
+
+          <div class="service-item" data-service="driver">
+            <span class="service-icon">🪪</span>
+            <span class="service-name">Замена водительского удостоверения</span>
+            <span class="service-status">доступно</span>
+          </div>
+        </div>
+
+        <div class="service-detail" id="service-detail">
+          <p class="hint">Выберите услугу для получения информации</p>
+        </div>
+      </div>
+
+      <div class="widget-footer">
+        <button class="btn-refresh" id="refresh-btn" type="button">Обновить данные</button>
+        <span class="widget-info">Версия API: 2.0</span>
+      </div>
+    </div>
+
+    <!-- ================ ЗАДАНИЕ 5: ЛИЧНЫЙ КАБИНЕТ ================ -->
+    <div class="profile-section hidden" id="profile-section"></div>
+
+    <!-- ===================== АВТОРИЗАЦИЯ ===================== -->
+    <div class="auth-section">
+      <h3>Авторизация через ЕСИА</h3>
+
+      <!-- Задание 4: переключение способа входа -->
+      <div class="auth-tabs" id="auth-tabs">
+        <button class="auth-tab active" type="button" data-auth-mode="password">Логин и пароль</button>
+        <button class="auth-tab" type="button" data-auth-mode="snils">По СНИЛС</button>
+      </div>
+
+      <div class="auth-form" id="auth-form-password">
+        <input type="text" id="auth-login" placeholder="Логин (телефон, email или user123)"
+               value="user123" autocomplete="username">
+        <input type="password" id="auth-password" placeholder="Пароль"
+               value="password" autocomplete="current-password">
+        <button id="auth-btn" type="button">Войти через Госуслуги</button>
+      </div>
+
+      <div class="auth-form hidden" id="auth-form-snils">
+        <input type="text" id="auth-snils" placeholder="СНИЛС" value="123-456-789 00" autocomplete="off">
+        <button id="auth-snils-btn" type="button">Войти по СНИЛС</button>
+      </div>
+
+      <div class="auth-status" id="auth-status">Статус: не авторизован</div>
+
+      <p class="auth-hint">
+        Демо-данные: логин <strong>user123</strong>, пароль <strong>password</strong>;
+        СНИЛС <strong>123-456-789 00</strong>
+      </p>
+
+      <button class="logout-btn hidden" id="logout-btn" type="button">Выйти из Госуслуг</button>
+    </div>
+
+    <!-- ===================== API-ЗАПРОСЫ ===================== -->
+    <div class="api-section">
+      <h3>API-запросы</h3>
+      <div class="api-controls">
+        <button class="api-btn" type="button" data-api="user">Получить данные пользователя</button>
+        <button class="api-btn" type="button" data-api="services">Список услуг</button>
+        <button class="api-btn" type="button" data-api="history">История обращений</button>
+      </div>
+      <div class="api-response" id="api-response">
+        <pre>Результат запроса будет здесь...</pre>
+      </div>
+    </div>
+
+    <!-- ============ ЗАДАНИЕ 7: ВСТРАИВАЕМЫЙ ВИДЖЕТ ПОС ============ -->
+    <div class="api-section">
+      <h3>Встраиваемый виджет ПОС (Задание 7)</h3>
+      <p class="embed-note">Код, который можно скопировать и вставить на любой сайт:</p>
+      <pre class="embed-code">&lt;div id="gosuslugi-widget" data-org-id="12345"&gt;&lt;/div&gt;
+&lt;script src="widget.js"&gt;&lt;/script&gt;</pre>
+      <div id="gosuslugi-widget" data-org-id="12345"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
