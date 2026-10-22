@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Библиотека книг — LocalStorage</title>
+  <style>
+    /* ===== ГЛОБАЛЬНЫЕ СТИЛИ ===== */
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f0f2f5;
+      color: #1a1a2e;
+    }
+
+    /* ===== КОНТЕЙНЕРЫ ===== */
+    .container { display: flex; gap: 30px; flex-wrap: wrap; }
+    .sidebar {
+      flex: 1;
+      min-width: 280px;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      height: fit-content;
+    }
+    .content { flex: 2; min-width: 400px; }
+
+    /* ===== ФОРМА ===== */
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 14px; }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border 0.3s;
+    }
+    .form-group input:focus, .form-group select:focus {
+      border-color: #007bff;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+    }
+
+    /* ===== КНОПКИ ===== */
+    button {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+    button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+    
+    .btn-primary { background: #007bff; color: white; }
+    .btn-success { background: #28a745; color: white; }
+    .btn-danger { background: #dc3545; color: white; }
+    .btn-outline { background: #6c757d; color: white; }
+    .btn-outline.active { background: #007bff; }
+
+    /* ===== СТАТИСТИКА И ИНДИКАТОР ===== */
+    .stats { background: #e9ecef; padding: 15px; border-radius: 8px; margin: 15px 0; }
+    .stats p { margin: 5px 0; font-size: 14px; }
+    .stats span { font-weight: 700; color: #007bff; }
+    
+    .save-indicator {
+      font-size: 12px;
+      color: #28a745;
+      text-align: center;
+      margin-top: 10px;
+      min-height: 18px;
+    }
+
+    /* ===== ПАНЕЛЬ ПОИСКА И СОРТИРОВКИ ===== */
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .controls input, .controls select {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      flex: 1;
+      min-width: 150px;
+    }
+
+    /* ===== КАРТОЧКИ КНИГ ===== */
+    .book-card {
+      background: white;
+      padding: 18px;
+      margin: 12px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+      border-left: 5px solid #6c757d;
+      transition: transform 0.2s;
+    }
+    .book-card:hover { transform: translateX(5px); }
+    .book-card.available { border-left-color: #28a745; }
+    .book-card.unavailable { border-left-color: #dc3545; }
+    .book-card.ebook { border-left-color: #17a2b8; }
+    .book-card.audiobook { border-left-color: #ffc107; }
+
+    .book-title { font-size: 1.2em; font-weight: 700; color: #1a1a2e; display: flex; justify-content: space-between;}
+    .book-meta { color: #6c757d; font-size: 0.9em; margin: 5px 0; }
+    .book-actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .book-actions button { padding: 5px 12px; font-size: 13px; }
+
+    .badge {
+      display: inline-block; padding: 2px 10px; border-radius: 12px;
+      font-size: 0.75em; font-weight: 600; margin: 0 2px;
+    }
+    .badge-ebook { background: #17a2b8; color: white; }
+    .badge-audiobook { background: #ffc107; color: #212529; }
+    .badge-book { background: #6c757d; color: white; }
+
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; }
+    .filters button { padding: 8px 16px; }
+    
+    .fav-btn { background: none; border: none; font-size: 20px; cursor: pointer; padding: 0 5px; color: #ccc; transition: color 0.2s; }
+    .fav-btn.active { color: #ffc107; }
+
+    .empty-state { text-align: center; color: #aaa; padding: 40px 20px; font-size: 1.1em; background: white; border-radius: 8px; }
+
+    @media (max-width: 768px) {
+      .container { flex-direction: column; }
+      .sidebar, .content { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <h1>📚 Библиотека книг (LocalStorage)</h1>
+
+  <div class="container">
+    <!-- ЛЕВАЯ КОЛОНКА -->
+    <div class="sidebar">
+      <h2>Добавить книгу</h2>
+      <form id="bookForm">
+        <div class="form-group">
+          <label for="title">Название *</label>
+          <input type="text" id="title" placeholder="Введите название" required>
+        </div>
+        <div class="form-group">
+          <label for="author">Автор *</label>
+          <input type="text" id="author" placeholder="Введите автора" required>
+        </div>
+        <div class="form-group">
+          <label for="year">Год *</label>
+          <input type="number" id="year" placeholder="Год издания" required min="1000" max="2026">
+        </div>
+        <div class="form-group">
+          <label for="type">Тип книги</label>
+          <select id="type">
+            <option value="book">Обычная</option>
+            <option value="ebook">Электронная</option>
+            <option value="audiobook">Аудиокнига</option>
+          </select>
+        </div>
+        
+        <div id="extraFields"></div>
+
+        <button type="submit" class="btn-success" style="width:100%;">Добавить книгу</button>
+      </form>
+
+      <!-- Задание 2: Undo -->
+      <button id="undoBtn" class="btn-outline" style="width: 100%; margin-top: 10px;" disabled>↩ Отменить действие</button>
+
+      <div class="stats">
+        <p>Статистика:</p>
+        <p>Всего книг: <span id="totalBooks">0</span></p>
+        <p>Доступно: <span id="availableBooks">0</span></p>
+        <p>Выдано: <span id="unavailableBooks">0</span></p>
+      </div>
+
+      <!-- Задание 1: Индикатор сохранения -->
+      <div class="save-indicator" id="saveIndicator"></div>
+
+      <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
+        <button id="clearAllBtn" class="btn-danger">Очистить всё</button>
+        <button id="exportBtn" class="btn-success">Экспорт</button>
+        <button id="importBtn" class="btn-primary">Импорт</button>
+        <input type="file" id="fileInput" accept=".json" style="display: none;">
+      </div>
+    </div>
+
+    <!-- ПРАВАЯ КОЛОНКА -->
+    <div class="content">
+      <div class="controls">
+        <input type="text" id="searchInput" placeholder="🔍 Поиск по названию или автору...">
+        <select id="sortSelect">
+          <option value="default">Сортировка по умолчанию</option>
+          <option value="year_desc">Год (сначала новые)</option>
+          <option value="year_asc">Год (сначала старые)</option>
+          <option value="title_asc">Название (А-Я)</option>
+          <option value="rating_desc">Рейтинг (сначала высокие)</option>
+        </select>
+      </div>
+
+      <div class="filters">
+        <button class="btn-outline active" data-filter="all">Все</button>
+        <button class="btn-outline" data-filter="available">Доступные</button>
+        <button class="btn-outline" data-filter="unavailable">Выданные</button>
+        <button class="btn-outline" data-filter="ebook">Электронные</button>
+        <button class="btn-outline" data-filter="audiobook">Аудиокниги</button>
+        <!-- Задание 4: Фильтр избранных -->
+        <button class="btn-outline" data-filter="favorites">⭐ Избранное</button>
+      </div>
+
+      <div id="booksContainer"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
