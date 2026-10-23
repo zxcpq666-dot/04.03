@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Таймер (ПР29 + Все задания)</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
+        .timer-container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+        .timer-card { background: #f9f9f9; border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); padding: 20px; width: 350px; text-align: center; position: relative; }
+        .svg-container { position: relative; width: 220px; height: 220px; margin: 0 auto; }
+        .time-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; font-weight: bold; }
+        button { cursor: pointer; border: none; border-radius: 5px; padding: 8px 15px; font-size: 14px; transition: 0.2s; }
+        button:hover { opacity: 0.8; }
+        input { padding: 5px; border: 1px solid #ccc; border-radius: 5px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // ==========================================
+        // ЗАДАНИЕ 1: Звуковое оповещение
+        // ==========================================
+        const playSound = () => {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.type = 'sine';
+                oscillator.frequency.value = 800;
+                gainNode.gain.value = 0.3;
+                oscillator.start();
+                setTimeout(() => oscillator.stop(), 500);
+            } catch (e) {
+                console.log("Звук заблокирован браузером до первого клика пользователя.");
+            }
+        };
+
+        // ==========================================
+        // КОМПОНЕНТ ТАЙМЕРА (Один таймер)
+        // ==========================================
+        function TimerCard({ timer, updateTimer, tickTimer, deleteTimer }) {
+            // Локальные состояния для полей ввода (Задание 3)
+            const [mins, setMins] = useState(Math.floor(timer.initialTime / 60));
+            const [secs, setSecs] = useState(timer.initialTime % 60);
+
+            // Синхронизация локальных полей при сбросе таймера
+            useEffect(() => {
+                if (!timer.isActive) {
+                    setMins(Math.floor(timer.initialTime / 60));
+                    setSecs(timer.initialTime % 60);
+                }
+            }, [timer.initialTime, timer.isActive]);
+
+            // Эффект для запуска интервала
+            useEffect(() => {
+                let interval = null;
+                if (timer.isActive) {
+                    interval = setInterval(() => {
+                        tickTimer(timer.id);
+                    }, 1000);
+                }
+                return () => clearInterval(interval);
+            }, [timer.isActive, timer.id]);
+
+            // Форматирование времени (MM:SS)
+            const formatTime = (seconds) => {
+                const m = Math.floor(seconds / 60);
+                const s = seconds % 60;
+                return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            };
+
+            // Выбор цвета
+            const getColor = () => {
+                if (timer.mode === 'interval') {
+                    return timer.phase === 'work' ? '#4CAF50' : '#FF9800'; // Зеленый/Оранжевый
+                }
+                if (timer.isFinished) return '#f44336';
+                if (timer.time <= 3 && timer.isActive) return '#ff9800';
+                return '#4CAF50';
+            };
+
+            // --- ЗАДАНИЕ 4: Круговой прогресс (SVG) ---
+            const radius = 100;
+            const circumference = 2 * Math.PI * radius;
+            const progress = timer.initialTime > 0 
+                ? (timer.initialTime - timer.time) / timer.initialTime 
+                : 0;
+            const strokeDashoffset = circumference * (1 - progress);
+
+            // --- ЗАДАНИЕ 3: Обработка полей Мин/Сек ---
+            const handleTimeChange = () => {
+                let totalSeconds = (parseInt(mins) || 0) * 60 + (parseInt(secs) || 0);
+                if (totalSeconds < 0) totalSeconds = 0;
+                if (totalSeconds > 99 * 60 + 59) totalSeconds = 99 * 60 + 59;
+                
+                updateTimer(timer.id, { 
+                    initialTime: totalSeconds, 
+                    time: totalSeconds, 
+                    isFinished: false,
+                    isActive: false
+                });
+            };
+
+            // --- ЗАДАНИЕ 2: Быстрые кнопки ---
+            const setQuickTime = (seconds) => {
+                updateTimer(timer.id, { 
+                    initialTime: seconds, 
+                    time: seconds, 
+                    isFinished: false,
+                    isActive: false
+                });
+            };
+
+            return (
+                <div className="timer-card" style={{ border: `3px solid ${getColor()}` }}>
+                    {/* Заголовок и кнопка удаления */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                        <h3 style={{ margin: 0, color: '#333' }}>
+                            {timer.mode === 'interval' ? 'Интервальный' : 'Таймер'}
+                        </h3>
+                        <button onClick={() => deleteTimer(timer.id)} style={{ background: '#ff4444', color: 'white' }}>✕</button>
+                    </div>
+
+                    {/* ЗАДАНИЕ 7: Отображение фазы */}
+                    {timer.mode === 'interval' && (
+                        <div style={{ fontWeight: 'bold', color: getColor(), marginBottom: '10px' }}>
+                            {timer.phase === 'work' ? '🏃 РАБОТА' : '☕ ОТДЫХ'}
+                        </div>
+                    )}
+
+                    {/* ЗАДАНИЕ 4: Круговой прогресс */}
+                    <div className="svg-container">
+                        <svg width="220" height="220">
+                            <circle cx="110" cy="110" r={radius} fill="none" stroke="#e0e0e0" strokeWidth="10" />
+                            <circle 
+                                cx="110" cy="110" r={radius} fill="none" 
+                                stroke={getColor()} strokeWidth="10" 
+                                strokeDasharray={circumference} 
+                                strokeDashoffset={strokeDashoffset}
+                                style={{ transition: 'stroke-dashoffset 1s linear, stroke 0.3s', transform: 'rotate(-90deg)', transformOrigin: '50% 50%' }}
+                            />
+                        </svg>
+                        <div className="time-text" style={{ color: getColor() }}>
+                            {formatTime(timer.time)}
+                        </div>
+                    </div>
+
+                    {/* Блок настроек (скрываем, когда таймер активен) */}
+                    {!timer.isActive && !timer.isFinished && (
+                        <div style={{ marginTop: '15px' }}>
+                            {/* ЗАДАНИЕ 3: Поля Мин и Сек */}
+                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '5px', marginBottom: '10px' }}>
+                                <input type="number" min="0" max="99" value={mins} onChange={(e) => setMins(e.target.value)} style={{ width: '50px' }} onBlur={handleTimeChange} />
+                                <span>:</span>
+                                <input type="number" min="0" max="59" value={secs} onChange={(e) => setSecs(e.target.value)} style={{ width: '50px' }} onBlur={handleTimeChange} />
+                            </div>
+
+                            {/* ЗАДАНИЕ 2: Быстрые кнопки */}
+                            <div style={{ display: 'flex', gap: '5px', justifyContent: 'center', marginBottom: '15px' }}>
+                                {[5, 10, 30, 60].map(s => (
+                                    <button key={s} onClick={() => setQuickTime(s)} style={{ background: '#e0e0e0', color: '#333' }}>
+                                        {s}с
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Кнопки управления */}
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '10px' }}>
+                        {!timer.isActive ? (
+                            <button 
+                                onClick={() => updateTimer(timer.id, { isActive: true, isFinished: false })}
+                                disabled={timer.time === 0}
+                                style={{ background: timer.time === 0 ? '#ccc' : '#4CAF50', color: 'white', padding: '10px 20px' }}
+                            >
+                                ▶ Старт
+                            </button>
+                        ) : (
+                            <button onClick={() => updateTimer(timer.id, { isActive: false })} style={{ background: '#FF9800', color: 'white', padding: '10px 20px' }}>
+                                ⏸ Пауза
+                            </button>
+                        )}
+                        
+                        <button 
+                            onClick={() => updateTimer(timer.id, { isActive: false, isFinished: false, time: timer.initialTime, phase: 'work' })}
+                            style={{ background: '#9E9E9E', color: 'white', padding: '10px 20px' }}
+                        >
+                            ↺ Сброс
+                        </button>
+                    </div>
+
+                    {timer.isFinished && (
+                        <div style={{ marginTop: '15px', color: '#f44336', fontWeight: 'bold' }}>
+                            ⏰ Время вышло!
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // ==========================================
+        // ГЛАВНЫЙ КОМПОНЕНТ (App)
+        // ==========================================
+        function App() {
+            // ЗАДАНИЕ 5 & 6: Массив таймеров + сохранение в LocalStorage
+            const [timers, setTimers] = useState(() => {
+                const saved = localStorage.getItem('reactTimers');
+                if (saved) return JSON.parse(saved);
+                return [
+                    { id: Date.now(), initialTime: 10, time: 10, isActive: false, isFinished: false, mode: 'standard', phase: 'work' }
+                ];
+            });
+
+            // Сохранение в LocalStorage при любых изменениях
+            useEffect(() => {
+                localStorage.setItem('reactTimers', JSON.stringify(timers));
+            }, [timers]);
+
+            // Обновление конкретного таймера
+            const updateTimer = (id, updates) => {
+                setTimers(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+            };
+
+            // Удаление таймера
+            const deleteTimer = (id) => {
+                setTimers(prev => prev.filter(t => t.id !== id));
+            };
+
+            // Тик таймера (вызывается каждую секунду)
+            const tickTimer = (id) => {
+                setTimers(prev => prev.map(t => {
+                    if (t.id !== id || !t.isActive) return t;
+
+                    if (t.time <= 1) {
+                        // Время вышло
+                        playSound(); // Задание 1
+
+                        // ЗАДАНИЕ 7: Логика интервальной тренировки
+                        if (t.mode === 'interval') {
+                            if (t.phase === 'work') {
+                                return { ...t, phase: 'rest', time: t.restTime || 10, initialTime: t.restTime || 10 };
+                            } else {
+                                return { ...t, phase: 'work', time: t.workTime || 30, initialTime: t.workTime || 30 };
+                            }
+                        } else {
+                            // Обычный таймер
+                            return { ...t, time: 0, isActive: false, isFinished: true };
+                        }
+                    }
+                    return { ...t, time: t.time - 1 };
+                }));
+            };
+
+            // Добавление нового таймера
+            const addTimer = (mode) => {
+                const newTimer = {
+                    id: Date.now(),
+                    initialTime: mode === 'interval' ? 30 : 10,
+                    time: mode === 'interval' ? 30 : 10,
+                    isActive: false,
+                    isFinished: false,
+                    mode: mode,
+                    phase: 'work',
+                    workTime: 30,
+                    restTime: 10
+                };
+                setTimers([...timers, newTimer]);
+            };
+
+            return (
+                <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+                    <h1 style={{ textAlign: 'center', color: '#333' }}>Мульти-Таймер</h1>
+                    
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginBottom: '30px' }}>
+                        <button onClick={() => addTimer('standard')} style={{ background: '#2196F3', color: 'white', padding: '10px 20px', fontSize: '16px' }}>
+                            + Добавить обычный таймер
+                        </button>
+                        <button onClick={() => addTimer('interval')} style={{ background: '#9C27B0', color: 'white', padding: '10px 20px', fontSize: '16px' }}>
+                            + Добавить интервальный (30/10)
+                        </button>
+                    </div>
+
+                    {timers.length === 0 ? (
+                        <p style={{ textAlign: 'center', color: '#666' }}>Нет активных таймеров. Добавьте новый!</p>
+                    ) : (
+                        <div className="timer-container">
+                            {timers.map(timer => (
+                                <TimerCard 
+                                    key={timer.id} 
+                                    timer={timer} 
+                                    updateTimer={updateTimer} 
+                                    tickTimer={tickTimer} 
+                                    deleteTimer={deleteTimer} 
+                                />
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
