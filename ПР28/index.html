@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Переключатель тем (ПР28 + Все задания)</title>
+    <style>
+        /* Задание 4: Анимации и переходы */
+        body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        .theme-icon {
+            display: inline-block;
+            transition: transform 0.5s ease;
+        }
+        .theme-icon.rotate { transform: rotate(360deg); }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2) !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <!-- Подключаем React и Babel -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // ==========================================
+        // ЗАДАНИЕ 6: Три темы (light, dark, blue)
+        // ==========================================
+        const themesConfig = {
+            light: {
+                background: '#f0f2f5', text: '#000000', 
+                cardBg: '#ffffff', cardText: '#333333', cardSub: '#666666',
+                toggleBg: '#4CAF50', badgeBg: '#e0e0e0', badgeText: '#333'
+            },
+            dark: {
+                background: '#1a1a1a', text: '#ffffff', 
+                cardBg: '#2d2d2d', cardText: '#ffffff', cardSub: '#cccccc',
+                toggleBg: '#555555', badgeBg: '#444444', badgeText: '#fff'
+            },
+            blue: {
+                background: '#e3f2fd', text: '#0d47a1', 
+                cardBg: '#ffffff', cardText: '#0d47a1', cardSub: '#1565c0',
+                toggleBg: '#2196F3', badgeBg: '#bbdefb', badgeText: '#0d47a1'
+            }
+        };
+
+        // ==========================================
+        // КОМПОНЕНТ 1: Card (с динамическими стилями)
+        // ==========================================
+        function Card({ theme, accentColor, title, description }) {
+            const currentColors = themesConfig[theme];
+
+            const cardStyles = {
+                backgroundColor: currentColors.cardBg,
+                color: currentColors.cardText,
+                padding: '20px',
+                borderRadius: '10px',
+                boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                transition: 'all 0.3s ease, transform 0.2s ease',
+                border: `2px solid ${accentColor}`, // Задание 5: Акцентный цвет
+                cursor: 'pointer'
+            };
+
+            const titleStyles = {
+                marginTop: '0',
+                marginBottom: '10px',
+                color: currentColors.cardText,
+                fontSize: '20px',
+                borderBottom: `2px solid ${accentColor}`, // Задание 5
+                paddingBottom: '5px',
+                display: 'inline-block'
+            };
+
+            const descStyles = {
+                marginBottom: '15px',
+                color: currentColors.cardSub,
+                lineHeight: '1.6',
+                fontSize: '14px'
+            };
+
+            const badgeStyles = {
+                display: 'inline-block',
+                padding: '4px 12px',
+                backgroundColor: currentColors.badgeBg,
+                color: currentColors.badgeText,
+                borderRadius: '12px',
+                fontSize: '12px',
+                fontWeight: 'bold'
+            };
+
+            // Иконка меняется в зависимости от темы
+            const iconMap = { light: '☀️', dark: '🌙', blue: '💧' };
+
+            return (
+                <div style={cardStyles} className="card">
+                    <h3 style={titleStyles}>{title}</h3>
+                    <p style={descStyles}>{description}</p>
+                    <span style={badgeStyles}>
+                        {iconMap[theme]} {theme === 'light' ? 'Дневная' : theme === 'dark' ? 'Ночная' : 'Синяя'} тема
+                    </span>
+                </div>
+            );
+        }
+
+        // ==========================================
+        // КОМПОНЕНТ 2: ThemeToggle (Кнопки управления)
+        // ==========================================
+        function ThemeToggle({ theme, setTheme, isAuto, setIsAuto }) {
+            // Задание 6: Переключение по кругу light -> dark -> blue
+            const toggleTheme = () => {
+                if (isAuto) setIsAuto(false); // При ручном переключении отключаем авто
+                if (theme === 'light') setTheme('dark');
+                else if (theme === 'dark') setTheme('blue');
+                else setTheme('light');
+            };
+
+            const currentColors = themesConfig[theme];
+
+            return (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px', marginBottom: '20px' }}>
+                    
+                    {/* Ползунок и кнопка ручного переключения (Задание 2) */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                        <span className={`theme-icon ${theme !== 'light' ? 'rotate' : ''}`} style={{ fontSize: '30px' }}>
+                            {theme === 'light' ? '☀️' : theme === 'dark' ? '🌙' : '💧'}
+                        </span>
+                        
+                        <button
+                            onClick={toggleTheme}
+                            style={{
+                                width: '70px', height: '36px', borderRadius: '18px',
+                                backgroundColor: currentColors.toggleBg, border: 'none',
+                                cursor: 'pointer', position: 'relative', transition: 'background-color 0.3s'
+                            }}
+                        >
+                            <div style={{
+                                width: '28px', height: '28px', borderRadius: '50%',
+                                backgroundColor: '#fff', position: 'absolute', top: '4px',
+                                left: theme === 'light' ? '4px' : theme === 'dark' ? '38px' : '21px',
+                                transition: 'left 0.3s ease'
+                            }} />
+                        </button>
+                    </div>
+
+                    {/* Задание 2: Текстовая кнопка */}
+                    <button 
+                        onClick={toggleTheme}
+                        style={{
+                            padding: '10px 20px',
+                            backgroundColor: currentColors.cardBg,
+                            color: currentColors.text,
+                            border: `1px solid ${currentColors.toggleBg}`,
+                            borderRadius: '5px', cursor: 'pointer'
+                        }}
+                    >
+                        {theme === 'light' ? 'Переключить на темную' : theme === 'dark' ? 'Переключить на синюю' : 'Переключить на светлую'}
+                    </button>
+
+                    {/* Задание 7: Автоматический режим */}
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: currentColors.text, cursor: 'pointer' }}>
+                        <input 
+                            type="checkbox" 
+                            checked={isAuto} 
+                            onChange={(e) => setIsAuto(e.target.checked)} 
+                            style={{ width: '18px', height: '18px' }}
+                        />
+                        Авто-режим (по времени суток)
+                    </label>
+                </div>
+            );
+        }
+
+        // ==========================================
+        // КОМПОНЕНТ 3: ThemeSettings (Задание 5)
+        // ==========================================
+        function ThemeSettings({ theme, accentColor, setAccentColor }) {
+            const colors = ['#4CAF50', '#2196F3', '#f44336', '#FF9800', '#9C27B0'];
+            const currentColors = themesConfig[theme];
+
+            return (
+                <div style={{ 
+                    textAlign: 'center', marginBottom: '20px', 
+                    padding: '15px', backgroundColor: currentColors.cardBg, 
+                    borderRadius: '10px', display: 'inline-block'
+                }}>
+                    <p style={{ margin: '0 0 10px 0', color: currentColors.text, fontWeight: 'bold' }}>Акцентный цвет:</p>
+                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                        {colors.map(color => (
+                            <button
+                                key={color}
+                                onClick={() => setAccentColor(color)}
+                                style={{
+                                    width: '35px', height: '35px', backgroundColor: color,
+                                    border: accentColor === color ? `3px solid ${currentColors.text}` : '3px solid transparent',
+                                    borderRadius: '50%', cursor: 'pointer',
+                                    transform: accentColor === color ? 'scale(1.1)' : 'scale(1)',
+                                    transition: 'all 0.2s'
+                                }}
+                            />
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        // ==========================================
+        // ГЛАВНЫЙ КОМПОНЕНТ: App
+        // ==========================================
+        function App() {
+            // Задание 3: Загрузка из LocalStorage
+            const savedTheme = localStorage.getItem('appTheme') || 'light';
+            const savedAccent = localStorage.getItem('appAccent') || '#4CAF50';
+            const savedAuto = localStorage.getItem('appAuto') === 'true';
+
+            const [theme, setTheme] = useState(savedTheme);
+            const [accentColor, setAccentColor] = useState(savedAccent);
+            const [isAuto, setIsAuto] = useState(savedAuto);
+
+            // Задание 7: Проверка времени суток
+            useEffect(() => {
+                if (isAuto) {
+                    const hour = new Date().getHours();
+                    const isNight = hour < 6 || hour >= 18;
+                    setTheme(isNight ? 'dark' : 'light');
+                }
+            }, [isAuto]);
+
+            // Задание 3: Сохранение в LocalStorage при изменениях
+            useEffect(() => {
+                localStorage.setItem('appTheme', theme);
+                localStorage.setItem('appAccent', accentColor);
+                localStorage.setItem('appAuto', isAuto);
+            }, [theme, accentColor, isAuto]);
+
+            const currentColors = themesConfig[theme];
+
+            const appStyles = {
+                backgroundColor: currentColors.background,
+                color: currentColors.text,
+                minHeight: '100vh',
+                padding: '20px',
+                transition: 'background-color 0.3s, color 0.3s',
+                fontFamily: 'Arial, sans-serif',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center'
+            };
+
+            return (
+                <div style={appStyles}>
+                    <div style={{ maxWidth: '900px', width: '100%' }}>
+                        <h1 style={{ textAlign: 'center', marginBottom: '10px', color: currentColors.text }}>
+                            Переключатель тем
+                        </h1>
+                        <p style={{ textAlign: 'center', color: currentColors.cardSub, marginTop: 0 }}>
+                            Текущая тема: <b>{theme}</b> {isAuto && '(Авто)'}
+                        </p>
+
+                        <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '30px', alignItems: 'center' }}>
+                            <ThemeToggle 
+                                theme={theme} 
+                                setTheme={setTheme} 
+                                isAuto={isAuto} 
+                                setIsAuto={setIsAuto} 
+                            />
+                            
+                            <ThemeSettings 
+                                theme={theme} 
+                                accentColor={accentColor} 
+                                setAccentColor={setAccentColor} 
+                            />
+                        </div>
+
+                        <div style={{ 
+                            display: 'grid', 
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
+                            gap: '20px', 
+                            marginTop: '30px' 
+                        }}>
+                            {/* Задание 1: Четыре карточки */}
+                            <Card theme={theme} accentColor={accentColor} title="Карточка 1" description="Это пример карточки, которая меняет свой внешний вид в зависимости от выбранной темы." />
+                            <Card theme={theme} accentColor={accentColor} title="Карточка 2" description="Темная тема делает интерфейс более комфортным для работы в темное время суток." />
+                            <Card theme={theme} accentColor={accentColor} title="Карточка 3" description="Синяя тема отлично подходит для корпоративных или медицинских приложений." />
+                            <Card theme={theme} accentColor={accentColor} title="Карточка 4" description="Вы можете менять акцентный цвет, и все элементы будут мгновенно обновляться." />
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
