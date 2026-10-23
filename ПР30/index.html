@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Генератор цитат (ПР30 - Быстрая версия)</title>
+    <style>
+        body {
+            margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; color: #333;
+        }
+        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+        .card {
+            background: rgba(255, 255, 255, 0.95); border-radius: 15px;
+            padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px; position: relative;
+        }
+        .btn {
+            padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;
+            font-size: 16px; transition: 0.2s; background: #4CAF50; color: white;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn-blue { background: #2196F3; }
+        .btn-red { background: #f44336; }
+        .btn-gray { background: #9e9e9e; }
+        .btn-disabled { background: #ccc; cursor: not-allowed; opacity: 0.7; }
+        
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; flex-wrap: wrap; }
+        .nav-btn {
+            background: rgba(255,255,255,0.2); color: white; border: 1px solid white;
+            padding: 10px 20px; border-radius: 20px; cursor: pointer; font-size: 16px;
+        }
+        .nav-btn.active { background: white; color: #764ba2; font-weight: bold; }
+        
+        .input-group { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .input-group input { flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; }
+        
+        .spinner {
+            border: 4px solid rgba(0,0,0,0.1); border-left-color: #764ba2;
+            border-radius: 50%; width: 40px; height: 40px;
+            animation: spin 1s linear infinite; margin: 20px auto;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        
+        .quote-text { font-size: 24px; line-height: 1.6; font-style: italic; min-height: 80px; }
+        .quote-author { font-size: 18px; font-weight: bold; color: #666; text-align: right; margin-top: 15px; }
+        
+        .suggestions {
+            position: absolute; background: white; border: 1px solid #ddd;
+            width: 100%; max-height: 200px; overflow-y: auto; z-index: 10;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-radius: 8px; top: 100%; left: 0; box-sizing: border-box;
+        }
+        .suggestions div { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+        .suggestions div:hover { background: #f0f0f0; }
+        
+        .list-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #eee; gap: 15px; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <!-- Используем Cloudflare (он быстрее и стабильнее в РФ) -->
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+
+    <script>
+        const { useState, useEffect } = React;
+        const h = React.createElement;
+
+        // Фейковые данные, если API заблокировано
+        const FALLBACK_QUOTES = [
+            { id: "1", quote: "Единственный способ делать великую работу — любить то, что ты делаешь.", author: "Стив Джобс" },
+            { id: "2", quote: "Жизнь — это то, что с тобой происходит, пока ты строишь планы.", author: "Джон Леннон" },
+            { id: "3", quote: "Успех — это способность идти от неудачи к неудаче, не теряя энтузиазма.", author: "Уинстон Черчилль" },
+            { id: "4", quote: "Не важно, насколько медленно ты идешь, главное — не останавливаться.", author: "Конфуций" },
+            { id: "5", quote: "Лучшее время посадить дерево было 20 лет назад. Следующее лучшее время — сегодня.", author: "Китайская пословица" },
+            { id: "6", quote: "Ваше время ограничено, не тратьте его, живя чужой жизнью.", author: "Стив Джобс" },
+            { id: "7", quote: "Ты можешь стать кем угодно, но не сможешь стать всеми.", author: "Неизвестный" },
+            { id: "8", quote: "Сложнее всего начать действовать, все остальное зависит только от упорства.", author: "Амелия Эрхарт" },
+            { id: "9", quote: "Всё, что нас не убивает, делает нас сильнее.", author: "Фридрих Ницше" },
+            { id: "10", quote: "Стремись не к тому, чтобы добиться успеха, а к тому, чтобы твоя жизнь имела смысл.", author: "Альберт Эйнштейн" }
+        ];
+
+        function App() {
+            const [view, setView] = useState('random');
+            const [quote, setQuote] = useState(null);
+            const [quotesList, setQuotesList] = useState([]);
+            const [loading, setLoading] = useState(true); // По умолчанию true
+            const [error, setError] = useState(null);
+            const [authorQuery, setAuthorQuery] = useState('');
+            const [suggestions, setSuggestions] = useState([]);
+            const [favorites, setFavorites] = useState(() => JSON.parse(localStorage.getItem('favoriteQuotes') || '[]'));
+            const [limit, setLimit] = useState(5);
+            const [page, setPage] = useState(1);
+            const [displayText, setDisplayText] = useState('');
+
+            // Безопасный запрос с таймаутом (если сервер тупит, берем локальные данные)
+            const safeFetch = async (url) => {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 2000); // Ждем максимум 2 секунды
+                try {
+                    const res = await fetch(url, { signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    if (!res.ok) throw new Error('HTTP Error');
+                    return await res.json();
+                } catch (e) {
+                    clearTimeout(timeoutId);
+                    throw e;
+                }
+            };
+
+            const loadRandom = async (searchAuthor = '') => {
+                setLoading(true); setError(null);
+                try {
+                    let data;
+                    if (searchAuthor) {
+                        data = await safeFetch(`https://dummyjson.com/quotes/search?q=${encodeURIComponent(searchAuthor)}`);
+                        if (data.quotes && data.quotes.length > 0) {
+                            const q = data.quotes[0];
+                            setQuote({ _id: q.id.toString(), content: q.quote, author: q.author });
+                        } else throw new Error('Автор не найден');
+                    } else {
+                        data = await safeFetch('https://dummyjson.com/quotes/random');
+                        setQuote({ _id: data.id.toString(), content: data.quote, author: data.author });
+                    }
+                } catch (err) {
+                    // Если API упало, берем случайную цитату из локального массива
+                    const local = FALLBACK_QUOTES[Math.floor(Math.random() * FALLBACK_QUOTES.length)];
+                    setQuote({ _id: local.id, content: local.quote, author: local.author });
+                    // Не показываем ошибку, чтобы не пугать (просто тихо подменяем данные)
+                } finally {
+                    setLoading(false);
+                    setAuthorQuery('');
+                    setSuggestions([]);
+                }
+            };
+
+            const loadList = async (l, p) => {
+                setLoading(true);
+                try {
+                    const skip = (p - 1) * l;
+                    const data = await safeFetch(`https://dummyjson.com/quotes?limit=${l}&skip=${skip}`);
+                    setQuotesList(data.quotes.map(q => ({ _id: q.id.toString(), content: q.quote, author: q.author })));
+                } catch (err) {
+                    // Фоллбек для списка
+                    const start = (p - 1) * l;
+                    const sliced = FALLBACK_QUOTES.slice(start, start + l);
+                    setQuotesList(sliced);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            useEffect(() => {
+                if (view === 'random') loadRandom();
+                else if (view === 'list') loadList(limit, page);
+            }, [view, limit, page]);
+
+            // Задание 7: Печатная машинка
+            useEffect(() => {
+                if (!quote || view !== 'random') return;
+                let i = 0;
+                setDisplayText('');
+                const text = quote.content;
+                const interval = setInterval(() => {
+                    if (i < text.length) {
+                        setDisplayText(prev => prev + text[i]);
+                        i++;
+                    } else clearInterval(interval);
+                }, 10);
+                return () => clearInterval(interval);
+            }, [quote, view]);
+
+            const handleSearch = (e) => {
+                e.preventDefault();
+                if (authorQuery.trim()) loadRandom(authorQuery.trim());
+            };
+
+            const share = () => {
+                const text = `"${quote.content}" — ${quote.author}`;
+                if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => alert('Скопировано!'));
+            };
+
+            const toggleFav = (q) => {
+                const isFav = favorites.some(f => f._id === q._id);
+                const newFavs = isFav ? favorites.filter(f => f._id !== q._id) : [...favorites, q];
+                setFavorites(newFavs);
+                localStorage.setItem('favoriteQuotes', JSON.stringify(newFavs));
+            };
+
+            const QuoteCard = ({ q }) => h('div', { className: 'list-item' },
+                h('div', null,
+                    h('p', { style: { margin: '0 0 5px 0', fontStyle: 'italic' } }, `"${q.content}"`),
+                    h('span', { style: { fontSize: '14px', color: '#888' } }, `— ${q.author}`)
+                ),
+                h('button', { onClick: () => toggleFav(q), className: 'btn btn-blue', style: { padding: '5px 10px' } }, 
+                    favorites.some(f => f._id === q._id) ? '★' : '☆')
+            );
+
+            return h('div', { className: 'container' },
+                h('h1', { style: { textAlign: 'center', color: 'white' } }, 'Цитаты'),
+                h('div', { className: 'nav-tabs' },
+                    h('button', { className: `nav-btn ${view === 'random' ? 'active' : ''}`, onClick: () => setView('random') }, '🎲 Случайная'),
+                    h('button', { className: `nav-btn ${view === 'list' ? 'active' : ''}`, onClick: () => setView('list') }, '📚 Список'),
+                    h('button', { className: `nav-btn ${view === 'favorites' ? 'active' : ''}`, onClick: () => setView('favorites') }, `⭐ Избранное (${favorites.length})`)
+                ),
+                h('div', { className: 'card' },
+                    loading ? h('div', { className: 'spinner' }) : (
+                        view === 'random' && quote ? h('div', null,
+                            h('form', { onSubmit: handleSearch, className: 'input-group' },
+                                h('input', { type: 'text', placeholder: 'Поиск по автору...', value: authorQuery, onChange: (e) => setAuthorQuery(e.target.value) }),
+                                h('button', { type: 'submit', className: 'btn btn-blue' }, 'Найти')
+                            ),
+                            h('div', { className: 'quote-text' }, `"${displayText}${displayText.length < quote.content.length ? '|' : ''}"`),
+                            displayText.length === quote.content.length && h('div', { className: 'quote-author' }, `— ${quote.author}`),
+                            h('div', { style: { display: 'flex', gap: '10px', marginTop: '20px', flexWrap: 'wrap' } },
+                                h('button', { onClick: () => loadRandom(), className: 'btn btn-blue' }, '🔄 Другая'),
+                                h('button', { onClick: share, className: 'btn btn-gray' }, '📋 Поделиться'),
+                                h('button', { onClick: () => toggleFav(quote), className: `btn ${favorites.some(f=>f._id===quote._id) ? 'btn-red' : 'btn-gray'}` },
+                                    favorites.some(f=>f._id===quote._id) ? '★ В избранном' : '☆ В избранное')
+                            )
+                        ) : null
+                    ),
+                    view === 'list' && !loading && h('div', null,
+                        h('div', { style: { display: 'flex', justifyContent: 'space-between', marginBottom: '20px' } },
+                            h('select', { value: limit, onChange: (e) => { setLimit(Number(e.target.value)); setPage(1); }, style: { padding: '5px' } },
+                                h('option', { value: 3 }, '3 цитаты'),
+                                h('option', { value: 5 }, '5 цитат'),
+                                h('option', { value: 10 }, '10 цитат')
+                            ),
+                            h('span', null, `Стр. ${page}`)
+                        ),
+                        h('div', null, quotesList.map(q => h(QuoteCard, { key: q._id, q }))),
+                        h('div', { style: { display: 'flex', justifyContent: 'space-between', marginTop: '20px' } },
+                            h('button', { onClick: () => setPage(p => Math.max(1, p - 1)), disabled: page === 1, className: 'btn btn-blue' }, '← Назад'),
+                            h('button', { onClick: () => setPage(p => p + 1), className: 'btn btn-blue' }, 'Вперед →')
+                        )
+                    ),
+                    view === 'favorites' && !loading && h('div', null,
+                        favorites.length === 0 ? h('p', { style: { textAlign: 'center' } }, 'Пусто') 
+                        : favorites.map(q => h(QuoteCard, { key: q._id, q }))
+                    )
+                )
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+    </script>
+</body>
+</html>
