@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Калькулятор (ПР31 + Все задания)</title>
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; background-color: #f5f7fa; display: flex; justify-content: center; padding-top: 40px; }
+        .container { max-width: 650px; width: 100%; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #ddd; }
+        .tab { padding: 10px 20px; cursor: pointer; font-weight: bold; color: #666; }
+        .tab.active { color: #4CAF50; border-bottom: 3px solid #4CAF50; }
+        .input-group { display: flex; gap: 10px; align-items: center; margin-bottom: 15px; }
+        .input-group input, .input-group select { padding: 10px; font-size: 16px; border: 2px solid #ddd; border-radius: 5px; outline: none; }
+        .input-group input { flex: 1; }
+        .btn { padding: 12px 20px; font-size: 16px; border: none; border-radius: 5px; cursor: pointer; color: white; font-weight: bold; transition: 0.2s; }
+        .btn:active { transform: scale(0.95); }
+        .btn-green { background: #4CAF50; } .btn-green:hover { background: #388E3C; }
+        .btn-gray { background: #9E9E9E; } .btn-gray:hover { background: #757575; }
+        .btn-blue { background: #2196F3; } .btn-blue:hover { background: #1976D2; }
+        .btn-red { background: #f44336; } .btn-red:hover { background: #D32F2F; }
+        .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
+        .keypad button { padding: 15px; font-size: 18px; border: none; border-radius: 5px; background: #eee; cursor: pointer; font-weight: bold; }
+        .keypad button:hover { background: #ddd; }
+        .keypad .op { background: #e3f2fd; color: #1976D2; }
+        .keypad .eq { background: #4CAF50; color: white; }
+        .result-box { padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 20px; text-align: center; }
+        .error-box { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+        .success-box { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+        .history-box { margin-top: 20px; max-height: 200px; overflow-y: auto; border-top: 2px solid #eee; padding-top: 15px; }
+        .history-item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #eee; font-size: 14px; }
+        .sci-keys { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 10px; }
+        .sci-keys button { padding: 8px; font-size: 14px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+
+    <script>
+        const { useState, useEffect, useRef } = React;
+        const h = React.createElement;
+
+        function App() {
+            // Состояния
+            const [view, setView] = useState('basic'); // 'basic' | 'scientific'
+            const [num1, setNum1] = useState('');
+            const [num2, setNum2] = useState('');
+            const [operation, setOperation] = useState('+');
+            const [result, setResult] = useState(null);
+            const [error, setError] = useState('');
+            const [history, setHistory] = useState([]);
+            
+            // Задание 4: Активное поле и клавиатура
+            const [activeField, setActiveField] = useState('num1');
+            const input1Ref = useRef(null);
+            const input2Ref = useRef(null);
+            
+            // Задание 5: Системы счисления
+            const [base, setBase] = useState(10);
+            
+            // Задание 6: Память
+            const [memory, setMemory] = useState(0);
+            
+            // Задание 7: Научный калькулятор
+            const [sciExpr, setSciExpr] = useState('');
+            const [sciResult, setSciResult] = useState(null);
+
+            // Фокус на активное поле
+            useEffect(() => {
+                if (activeField === 'num1' && input1Ref.current) input1Ref.current.focus();
+                if (activeField === 'num2' && input2Ref.current) input2Ref.current.focus();
+            }, [activeField, num1, num2]);
+
+            // Задание 3: Обработка клавиатуры
+            useEffect(() => {
+                const handleKeyDown = (e) => {
+                    if (e.key === 'Escape') {
+                        resetCalculator();
+                    }
+                    // Enter обрабатывается формой
+                };
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, []);
+
+            const resetCalculator = () => {
+                setNum1(''); setNum2(''); setResult(null); setError('');
+                setActiveField('num1');
+            };
+
+            // --- ОСНОВНЫЕ ВЫЧИСЛЕНИЯ ---
+            const calculate = (e) => {
+                if (e) e.preventDefault();
+                
+                if (num1 === '' || num2 === '') {
+                    setError('Пожалуйста, введите оба числа'); setResult(null); return;
+                }
+
+                // Задание 5: Парсинг с учетом системы счисления
+                const a = parseInt(num1, base);
+                const b = parseInt(num2, base);
+
+                if (isNaN(a) || isNaN(b)) {
+                    setError(`Некорректное число для системы ${base}`); setResult(null); return;
+                }
+
+                let calcRes;
+                let opSymbol = operation;
+
+                try {
+                    switch (operation) {
+                        case '+': calcRes = a + b; break;
+                        case '-': calcRes = a - b; break;
+                        case '*': calcRes = a * b; opSymbol = '×'; break;
+                        case '/': 
+                            if (b === 0) throw new Error('На ноль делить нельзя!');
+                            calcRes = a / b; opSymbol = '÷'; break;
+                        case '%': // Задание 1
+                            if (b === 0) throw new Error('На ноль делить нельзя!');
+                            calcRes = a % b; break;
+                        case '^': // Задание 2
+                            calcRes = Math.pow(a, b); break;
+                        default: throw new Error('Неизвестная операция');
+                    }
+
+                    if (!Number.isFinite(calcRes)) throw new Error('Слишком большое число или бесконечность');
+
+                    // Округление и перевод обратно в нужную систему счисления
+                    const rounded = Math.round(calcRes * 1e10) / 1e10;
+                    const finalResult = rounded.toString(base).toUpperCase();
+
+                    setResult(finalResult);
+                    setError('');
+
+                    // Добавление в историю
+                    const entry = {
+                        id: Date.now(),
+                        expression: `${a.toString(base).toUpperCase()} ${opSymbol} ${b.toString(base).toUpperCase()}`,
+                        result: finalResult,
+                        base: base
+                    };
+                    setHistory([entry, ...history]);
+
+                } catch (err) {
+                    setError(err.message);
+                    setResult(null);
+                }
+            };
+
+            // --- ЗАДАНИЕ 4: Цифровая клавиатура ---
+            const handleKeypadClick = (val) => {
+                const setter = activeField === 'num1' ? setNum1 : setNum2;
+                const current = activeField === 'num1' ? num1 : num2;
+                
+                if (val === 'C') {
+                    setter('');
+                } else if (val === '=') {
+                    calculate();
+                } else if (['+', '-', '*', '/', '%', '^'].includes(val)) {
+                    setOperation(val);
+                } else {
+                    // Валидация ввода для разных систем (только базовые цифры)
+                    setter(current + val);
+                }
+            };
+
+            // --- ЗАДАНИЕ 6: Память ---
+            const memAction = (action) => {
+                const currentVal = result !== null ? parseInt(result, base) : 0;
+                if (action === 'M+') setMemory(m => m + currentVal);
+                if (action === 'M-') setMemory(m => m - currentVal);
+                if (action === 'MR') {
+                    setNum1(memory.toString(base).toUpperCase());
+                    setActiveField('num1');
+                }
+                if (action === 'MC') setMemory(0);
+            };
+
+            // --- ЗАДАНИЕ 7: Научный калькулятор ---
+            const evaluateSci = () => {
+                try {
+                    // Безопасная замена для eval
+                    let expr = sciExpr
+                        .replace(/π/g, 'Math.PI')
+                        .replace(/e/g, 'Math.E')
+                        .replace(/sin\(/g, 'Math.sin(')
+                        .replace(/cos\(/g, 'Math.cos(')
+                        .replace(/tan\(/g, 'Math.tan(')
+                        .replace(/log\(/g, 'Math.log10(')
+                        .replace(/ln\(/g, 'Math.log(')
+                        .replace(/sqrt\(/g, 'Math.sqrt(')
+                        .replace(/\^/g, '**');
+                    
+                    // Вычисление
+                    const res = new Function('return ' + expr)();
+                    if (!Number.isFinite(res)) throw new Error('Недопустимое значение');
+                    setSciResult(Math.round(res * 1e10) / 1e10);
+                    setError('');
+                } catch (err) {
+                    setError('Ошибка в выражении: ' + err.message);
+                    setSciResult(null);
+                }
+            };
+
+            const appendSci = (text) => setSciExpr(prev => prev + text);
+
+            // Рендер
+            return h('div', { className: 'container' },
+                h('h1', { style: { textAlign: 'center', margin: '0 0 20px 0', color: '#333' } }, 'Калькулятор'),
+                
+                // Табы
+                h('div', { className: 'tabs' },
+                    h('div', { className: `tab ${view === 'basic' ? 'active' : ''}`, onClick: () => { setView('basic'); setError(''); } }, 'Обычный'),
+                    h('div', { className: `tab ${view === 'scientific' ? 'active' : ''}`, onClick: () => { setView('scientific'); setError(''); } }, 'Научный (Задание 7)')
+                ),
+
+                // ОБЫЧНЫЙ КАЛЬКУЛЯТОР
+                view === 'basic' && h('div', null,
+                    // Задание 5: Выбор системы счисления
+                    h('div', { style: { marginBottom: '15px', display: 'flex', gap: '10px' } },
+                        h('label', { style: { alignSelf: 'center', fontWeight: 'bold' } }, 'Система:'),
+                        h('select', { value: base, onChange: (e) => { setBase(Number(e.target.value)); resetCalculator(); }, style: { padding: '8px', borderRadius: '5px' } },
+                            h('option', { value: 10 }, 'DEC (10)'),
+                            h('option', { value: 2 }, 'BIN (2)'),
+                            h('option', { value: 8 }, 'OCT (8)'),
+                            h('option', { value: 16 }, 'HEX (16)')
+                        )
+                    ),
+
+                    h('form', { onSubmit: calculate },
+                        h('div', { className: 'input-group' },
+                            h('input', { 
+                                ref: input1Ref,
+                                type: 'text', 
+                                value: num1, 
+                                onChange: (e) => setNum1(e.target.value),
+                                onFocus: () => setActiveField('num1'),
+                                placeholder: 'Число 1',
+                                style: { borderColor: activeField === 'num1' ? '#4CAF50' : '#ddd' }
+                            }),
+                            h('select', { value: operation, onChange: (e) => setOperation(e.target.value), style: { width: '80px' } },
+                                h('option', { value: '+' }, '+'),
+                                h('option', { value: '-' }, '-'),
+                                h('option', { value: '*' }, '×'),
+                                h('option', { value: '/' }, '÷'),
+                                h('option', { value: '%' }, '% (Задание 1)'),
+                                h('option', { value: '^' }, '^ (Задание 2)')
+                            ),
+                            h('input', { 
+                                ref: input2Ref,
+                                type: 'text', 
+                                value: num2, 
+                                onChange: (e) => setNum2(e.target.value),
+                                onFocus: () => setActiveField('num2'),
+                                placeholder: 'Число 2',
+                                style: { borderColor: activeField === 'num2' ? '#4CAF50' : '#ddd' }
+                            })
+                        ),
+                        h('div', { style: { display: 'flex', gap: '10px' } },
+                            h('button', { type: 'submit', className: 'btn btn-green', style: { flex: 1 } }, 'Вычислить (=)'),
+                            h('button', { type: 'button', onClick: resetCalculator, className: 'btn btn-gray' }, 'Сброс (Esc)')
+                        )
+                    ),
+
+                    // Результат / Ошибка
+                    error && h('div', { className: 'result-box error-box' }, '⚠ ' + error),
+                    result !== null && h('div', { className: 'result-box success-box' },
+                        `Результат: ${result}`,
+                        h('div', { style: { fontSize: '12px', color: '#666', marginTop: '5px' } },
+                            `Целое: ${Number.isInteger(parseInt(result, base)) ? 'Да' : 'Нет'}`
+                        )
+                    ),
+
+                    // Задание 6: Память
+                    h('div', { style: { display: 'flex', gap: '10px', marginTop: '15px', alignItems: 'center', justifyContent: 'center' } },
+                        h('button', { onClick: () => memAction('MC'), className: 'btn btn-gray', style: { padding: '5px 10px', fontSize: '12px' } }, 'MC'),
+                        h('button', { onClick: () => memAction('MR'), className: 'btn btn-blue', style: { padding: '5px 10px', fontSize: '12px' } }, 'MR'),
+                        h('button', { onClick: () => memAction('M-'), className: 'btn btn-gray', style: { padding: '5px 10px', fontSize: '12px' } }, 'M-'),
+                        h('button', { onClick: () => memAction('M+'), className: 'btn btn-gray', style: { padding: '5px 10px', fontSize: '12px' } }, 'M+'),
+                        h('span', { style: { fontWeight: 'bold', marginLeft: '10px' } }, `Память: ${memory}`)
+                    ),
+
+                    // Задание 4: Цифровая клавиатура
+                    h('div', { className: 'keypad' },
+                        ['7', '8', '9', '/'].map(k => h('button', { key: k, className: 'op', onClick: () => handleKeypadClick(k) }, k)),
+                        ['4', '5', '6', '*'].map(k => h('button', { key: k, className: 'op', onClick: () => handleKeypadClick(k) }, k)),
+                        ['1', '2', '3', '-'].map(k => h('button', { key: k, className: 'op', onClick: () => handleKeypadClick(k) }, k)),
+                        ['0', '.', 'C', '+'].map(k => h('button', { key: k, className: k === 'C' ? 'op' : '', onClick: () => handleKeypadClick(k) }, k))
+                    ),
+                    h('div', { style: { display: 'flex', marginTop: '10px' } },
+                        h('button', { onClick: () => handleKeypadClick('='), className: 'btn btn-green', style: { width: '100%' } }, '=')
+                    ),
+
+                    // История
+                    history.length > 0 && h('div', { className: 'history-box' },
+                        h('div', { style: { display: 'flex', justifyContent: 'space-between', marginBottom: '10px' } },
+                            h('h3', { style: { margin: 0 } }, 'История'),
+                            h('button', { onClick: () => setHistory([]), className: 'btn btn-red', style: { padding: '2px 10px', fontSize: '12px' } }, 'Очистить')
+                        ),
+                        history.map(entry => h('div', { key: entry.id, className: 'history-item' },
+                            h('span', null, `${entry.expression} = ${entry.result} (base ${entry.base})`)
+                        ))
+                    )
+                ),
+
+                // ЗАДАНИЕ 7: НАУЧНЫЙ КАЛЬКУЛЯТОР
+                view === 'scientific' && h('div', null,
+                    h('p', { style: { color: '#666', fontSize: '14px' } }, 'Введите математическое выражение. Доступны: sin, cos, tan, log, ln, sqrt, π, e, ^, +, -, *, /, скобки.'),
+                    h('div', { className: 'input-group' },
+                        h('input', { type: 'text', value: sciExpr, onChange: (e) => setSciExpr(e.target.value), placeholder: 'Например: sin(π/2) + 2^3', style: { fontFamily: 'monospace' } }),
+                        h('button', { onClick: evaluateSci, className: 'btn btn-blue' }, '=')
+                    ),
+                    
+                    // Кнопки быстрого ввода
+                    h('div', { className: 'sci-keys' },
+                        ['sin(', 'cos(', 'tan(', 'log(', 'ln('].map(k => h('button', { key: k, onClick: () => appendSci(k) }, k)),
+                        ['sqrt(', 'π', 'e', '(', ')'].map(k => h('button', { key: k, onClick: () => appendSci(k) }, k)),
+                        ['7', '8', '9', '^', 'C'].map(k => h('button', { key: k, onClick: () => k === 'C' ? setSciExpr('') : appendSci(k) }, k)),
+                        ['4', '5', '6', '*', '/'].map(k => h('button', { key: k, onClick: () => appendSci(k) }, k)),
+                        ['1', '2', '3', '-', '+'].map(k => h('button', { key: k, onClick: () => appendSci(k) }, k))
+                    ),
+
+                    error && h('div', { className: 'result-box error-box' }, '⚠ ' + error),
+                    sciResult !== null && h('div', { className: 'result-box success-box' },
+                        `Результат: ${sciResult}`
+                    )
+                )
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+    </script>
+</body>
+</html>
