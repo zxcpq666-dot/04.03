@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Список покупок (ПР27 + Все задания)</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
+        input, select, button { font-size: 16px; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <!-- Подключаем React и Babel для работы JSX в браузере -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function App() {
+            // --- СОСТОЯНИЯ ---
+            const [items, setItems] = useState([]);
+            const [inputValue, setInputValue] = useState('');
+            const [category, setCategory] = useState('Продукты'); // Задание 7
+            const [searchTerm, setSearchTerm] = useState('');       // Задание 4
+            const [editingId, setEditingId] = useState(null);       // Задание 5
+            const [editValue, setEditValue] = useState('');         // Задание 5
+
+            // --- ЗАДАНИЕ 6: LocalStorage ---
+            // Загрузка при монтировании
+            useEffect(() => {
+                const saved = localStorage.getItem('shoppingList');
+                if (saved) {
+                    try {
+                        setItems(JSON.parse(saved));
+                    } catch (e) {
+                        console.error("Ошибка чтения localStorage", e);
+                    }
+                }
+            }, []);
+
+            // Сохранение при изменении items
+            useEffect(() => {
+                localStorage.setItem('shoppingList', JSON.stringify(items));
+            }, [items]);
+
+            // --- ОБРАБОТЧИКИ ---
+            // Задание 1: Добавление по Enter работает благодаря <form onSubmit>
+            const addItem = (e) => {
+                if (e) e.preventDefault(); // Предотвращаем перезагрузку страницы
+                if (inputValue.trim() === '') {
+                    alert('Введите название товара!');
+                    return;
+                }
+                // Задание 2 и 7: Добавляем объект с id, purchased и category
+                const newItem = {
+                    id: Date.now(),
+                    name: inputValue.trim(),
+                    purchased: false,
+                    category: category
+                };
+                setItems([...items, newItem]);
+                setInputValue('');
+            };
+
+            const deleteItem = (id) => {
+                setItems(items.filter(item => item.id !== id));
+            };
+
+            const clearAll = () => {
+                if (items.length === 0) return;
+                if (window.confirm('Вы уверены, что хотите удалить все товары?')) {
+                    setItems([]);
+                }
+            };
+
+            // Задание 2: Переключение статуса "Куплено"
+            const togglePurchased = (id) => {
+                setItems(items.map(item => 
+                    item.id === id ? { ...item, purchased: !item.purchased } : item
+                ));
+            };
+
+            // Задание 5: Начать редактирование
+            const startEdit = (id, name) => {
+                setEditingId(id);
+                setEditValue(name);
+            };
+
+            // Задание 5: Сохранить изменения
+            const saveEdit = (id) => {
+                if (editValue.trim() === '') return;
+                setItems(items.map(item => 
+                    item.id === id ? { ...item, name: editValue.trim() } : item
+                ));
+                setEditingId(null);
+            };
+
+            // Задание 5: Отменить редактирование
+            const cancelEdit = () => {
+                setEditingId(null);
+            };
+
+            // --- ВЫЧИСЛЯЕМЫЕ ЗНАЧЕНИЯ ---
+            // Задание 3: Статистика (считаем по всем товарам, а не по отфильтрованным)
+            const total = items.length;
+            const purchasedCount = items.filter(item => item.purchased).length;
+            const remainingCount = total - purchasedCount;
+
+            // Задание 4: Фильтрация по поиску
+            const filteredItems = items.filter(item =>
+                item.name.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            // Задание 7: Группировка по категориям
+            const groupedItems = filteredItems.reduce((acc, item) => {
+                if (!acc[item.category]) {
+                    acc[item.category] = [];
+                }
+                acc[item.category].push(item);
+                return acc;
+            }, {});
+
+            // Стили для кнопок (чтобы не дублировать код)
+            const btnStyle = (bg, color = 'white') => ({
+                padding: '8px 12px', backgroundColor: bg, color: color,
+                border: 'none', borderRadius: '5px', cursor: 'pointer', margin: '0 2px'
+            });
+
+            return (
+                <div style={{ maxWidth: '700px', margin: '0 auto', padding: '30px', backgroundColor: '#f9f9f9', borderRadius: '10px', boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}>
+                    <h1 style={{ textAlign: 'center', color: '#333', marginTop: 0 }}>Список покупок</h1>
+
+                    {/* ФОРМА ДОБАВЛЕНИЯ */}
+                    <form onSubmit={addItem} style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                        <input
+                            type="text"
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
+                            placeholder="Введите товар..."
+                            style={{ flex: '1', minWidth: '150px', padding: '10px', border: '2px solid #ddd', borderRadius: '5px', outline: 'none' }}
+                        />
+                        {/* Задание 7: Выбор категории */}
+                        <select 
+                            value={category} 
+                            onChange={(e) => setCategory(e.target.value)}
+                            style={{ padding: '10px', border: '2px solid #ddd', borderRadius: '5px', backgroundColor: 'white' }}
+                        >
+                            <option value="Продукты">Продукты</option>
+                            <option value="Бытовая химия">Бытовая химия</option>
+                            <option value="Электроника">Электроника</option>
+                            <option value="Прочее">Прочее</option>
+                        </select>
+                        <button type="submit" style={btnStyle('#4CAF50')}>Добавить</button>
+                    </form>
+
+                    {/* ЗАДАНИЕ 4: Поле поиска */}
+                    <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="Поиск товаров..."
+                        style={{ width: '100%', padding: '10px', marginBottom: '20px', border: '2px solid #ddd', borderRadius: '5px', boxSizing: 'border-box' }}
+                    />
+
+                    {/* ЗАДАНИЕ 3: Статистика */}
+                    <div style={{ display: 'flex', justifyContent: 'space-around', backgroundColor: 'white', padding: '15px', borderRadius: '5px', marginBottom: '20px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                        <span>Всего: <b>{total}</b></span>
+                        <span style={{ color: 'green' }}>Куплено: <b>{purchasedCount}</b></span>
+                        <span style={{ color: 'orange' }}>Осталось: <b>{remainingCount}</b></span>
+                        {items.length > 0 && (
+                            <button onClick={clearAll} style={btnStyle('#f44336')}>Очистить всё</button>
+                        )}
+                    </div>
+
+                    {/* СПИСОК ТОВАРОВ */}
+                    {filteredItems.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '40px', backgroundColor: 'white', color: '#999', borderRadius: '5px' }}>
+                            {items.length === 0 ? 'Список пуст. Добавьте первый товар.' : 'Ничего не найдено по запросу.'}
+                        </div>
+                    ) : (
+                        // ЗАДАНИЕ 7: Рендеринг сгруппированного списка
+                        Object.entries(groupedItems).map(([catName, catItems]) => (
+                            <div key={catName} style={{ marginBottom: '20px' }}>
+                                <h3 style={{ borderBottom: '2px solid #ccc', paddingBottom: '5px' }}>{catName}</h3>
+                                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                                    {catItems.map(item => (
+                                        <li key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 15px', marginBottom: '8px', backgroundColor: 'white', borderRadius: '5px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                                            
+                                            {/* ЗАДАНИЕ 5: Режим редактирования */}
+                                            {editingId === item.id ? (
+                                                <div style={{ display: 'flex', gap: '10px', flex: 1 }}>
+                                                    <input
+                                                        type="text"
+                                                        value={editValue}
+                                                        onChange={(e) => setEditValue(e.target.value)}
+                                                        style={{ flex: 1, padding: '5px' }}
+                                                    />
+                                                    <button onClick={() => saveEdit(item.id)} style={btnStyle('#4CAF50')}>Сохранить</button>
+                                                    <button onClick={cancelEdit} style={btnStyle('#9e9e9e')}>Отмена</button>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
+                                                        {/* Задание 2: Чекбокс / отметка о покупке */}
+                                                        <input 
+                                                            type="checkbox" 
+                                                            checked={item.purchased} 
+                                                            onChange={() => togglePurchased(item.id)} 
+                                                            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                                                        />
+                                                        <span style={{ 
+                                                            textDecoration: item.purchased ? 'line-through' : 'none',
+                                                            color: item.purchased ? '#999' : '#333',
+                                                            fontSize: '16px'
+                                                        }}>
+                                                            {item.name}
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <button onClick={() => startEdit(item.id, item.name)} style={btnStyle('#2196F3')}>✎</button>
+                                                        <button onClick={() => deleteItem(item.id)} style={btnStyle('#ff4444')}>✕</button>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ))
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
