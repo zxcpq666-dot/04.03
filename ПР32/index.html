@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Фильтрация и сортировка (ПР32 + Все задания)</title>
+    <style>
+        body {
+            margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa; padding: 30px 15px;
+        }
+        .container {
+            max-width: 800px; margin: 0 auto; background: white;
+            padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h1 { text-align: center; color: #333; margin-top: 0; }
+        
+        /* Задание 7: Анимация появления */
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .list-item {
+            animation: fadeSlideIn 0.3s ease-out forwards;
+            padding: 12px 18px; margin-bottom: 8px; background-color: white;
+            border: 1px solid #eee; border-radius: 8px; display: flex;
+            justify-content: space-between; align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: transform 0.2s;
+        }
+        .list-item:hover {
+            transform: translateX(5px); box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+        
+        /* Элементы управления */
+        .controls { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; }
+        .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        input[type="text"], select {
+            padding: 10px; border: 2px solid #ddd; border-radius: 5px;
+            font-size: 15px; outline: none; transition: border-color 0.2s;
+        }
+        input[type="text"]:focus, select:focus { border-color: #4CAF50; }
+        .btn {
+            padding: 10px 15px; border: none; border-radius: 5px;
+            cursor: pointer; font-size: 14px; color: white; font-weight: bold;
+            transition: 0.2s;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn-green { background: #4CAF50; }
+        .btn-blue { background: #2196F3; }
+        .btn-gray { background: #9E9E9E; }
+        .btn-orange { background: #FF9800; }
+        
+        /* Задание 3: Алфавит */
+        .alphabet { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-bottom: 15px; }
+        .alpha-btn {
+            padding: 4px 8px; border: none; border-radius: 4px;
+            cursor: pointer; background: #f0f0f0; color: #333; font-size: 13px;
+        }
+        .alpha-btn.active { background: #4CAF50; color: white; font-weight: bold; }
+
+        /* Задание 5: Чекбоксы */
+        .checkboxes { display: flex; gap: 15px; flex-wrap: wrap; align-items: center; font-size: 14px; }
+        .checkboxes label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+
+        .stats {
+            background: #e3f2fd; padding: 10px 15px; border-radius: 5px;
+            display: flex; justify-content: space-between; margin-bottom: 15px;
+            font-size: 14px; color: #1565c0;
+        }
+        .empty-state { text-align: center; padding: 40px; color: #999; }
+        
+        /* Подсветка */
+        .highlight { background-color: #ffeb3b; padding: 0 2px; border-radius: 2px; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+
+    <script>
+        const { useState, useMemo } = React;
+        const h = React.createElement;
+
+        // --- ЗАДАНИЕ 1 & 4: Больше данных + Формат объектов ---
+        const initialData = [
+            // Исходные
+            { id: 1, firstName: 'Анна', lastName: 'Иванова', age: 25, city: 'Москва', gender: 'female' },
+            { id: 2, firstName: 'Борис', lastName: 'Петров', age: 30, city: 'Санкт-Петербург', gender: 'male' },
+            { id: 3, firstName: 'Виктор', lastName: 'Сидоров', age: 45, city: 'Казань', gender: 'male' },
+            { id: 4, firstName: 'Галина', lastName: 'Смирнова', age: 50, city: 'Новосибирск', gender: 'female' },
+            { id: 5, firstName: 'Дмитрий', lastName: 'Кузнецов', age: 22, city: 'Екатеринбург', gender: 'male' },
+            { id: 6, firstName: 'Елена', lastName: 'Васильева', age: 35, city: 'Москва', gender: 'female' },
+            { id: 7, firstName: 'Иван', lastName: 'Попов', age: 28, city: 'Нижний Новгород', gender: 'male' },
+            { id: 8, firstName: 'Мария', lastName: 'Соколова', age: 19, city: 'Самара', gender: 'female' },
+            { id: 9, firstName: 'Николай', lastName: 'Лебедев', age: 40, city: 'Омск', gender: 'male' },
+            { id: 10, firstName: 'Ольга', lastName: 'Козлова', age: 33, city: 'Ростов-на-Дону', gender: 'female' },
+            { id: 11, firstName: 'Павел', lastName: 'Новиков', age: 27, city: 'Уфа', gender: 'male' },
+            { id: 12, firstName: 'Татьяна', lastName: 'Морозова', age: 38, city: 'Красноярск', gender: 'female' },
+            { id: 13, firstName: 'Алексей', lastName: 'Федоров', age: 31, city: 'Воронеж', gender: 'male' },
+            { id: 14, firstName: 'Наталья', lastName: 'Алексеева', age: 24, city: 'Пермь', gender: 'female' },
+            { id: 15, firstName: 'Сергей', lastName: 'Дмитриев', age: 55, city: 'Волгоград', gender: 'male' },
+            // Добавленные (Задание 1)
+            { id: 16, firstName: 'Джон', lastName: 'Смит', age: 42, city: 'Лондон', gender: 'male' },
+            { id: 17, firstName: 'Ли', lastName: 'Вонг', age: 29, city: 'Пекин', gender: 'male' },
+            { id: 18, firstName: 'София', lastName: 'Гарсия', age: 26, city: 'Мадрид', gender: 'female' },
+            { id: 19, firstName: 'Ханс', lastName: 'Мюллер', age: 60, city: 'Берлин', gender: 'male' },
+            { id: 20, firstName: 'Юки', lastName: 'Танака', age: 21, city: 'Токио', gender: 'female' },
+            { id: 21, firstName: 'Ян', lastName: 'Ковальский', age: 34, city: 'Варшава', gender: 'male' },
+            { id: 22, firstName: 'Алиса', lastName: 'Ян', age: 23, city: 'Сеул', gender: 'female' }
+        ];
+
+        function App() {
+            // Состояния
+            const [searchTerm, setSearchTerm] = useState('');
+            const [searchField, setSearchField] = useState('all'); // Задание 4
+            const [selectedLetter, setSelectedLetter] = useState(''); // Задание 3
+            const [activeFilters, setActiveFilters] = useState([]); // Задание 2 & 5
+            const [sortOrder, setSortOrder] = useState('asc');
+            
+            // Алфавит для Задания 3
+            const alphabet = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+            // Обработчики
+            const handleSearch = (e) => setSearchTerm(e.target.value);
+            const handleFieldChange = (e) => setSearchField(e.target.value);
+            const toggleSort = () => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+            
+            // Задание 5: Переключение чекбоксов
+            const toggleFilter = (filter) => {
+                setActiveFilters(prev => 
+                    prev.includes(filter) ? prev.filter(f => f !== filter) : [...prev, filter]
+                );
+            };
+
+            // Задание 6: Экспорт в JSON
+            const exportResults = (filteredData) => {
+                const dataStr = JSON.stringify(filteredData, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'filtered_results.json';
+                a.click();
+                URL.revokeObjectURL(url);
+            };
+
+            // Подсветка (Базовая задача)
+            const highlightText = (text, search) => {
+                if (!search) return text;
+                const regex = new RegExp(`(${search})`, 'gi');
+                const parts = text.split(regex);
+                return parts.map((part, i) => 
+                    regex.test(part) ? h('span', { key: i, className: 'highlight' }, part) : part
+                );
+            };
+
+            // --- ГЛАВНАЯ ЛОГИКА ФИЛЬТРАЦИИ (useMemo) ---
+            const filteredItems = useMemo(() => {
+                let result = [...initialData];
+
+                // 1. Поиск (Задание 4)
+                if (searchTerm.trim()) {
+                    const term = searchTerm.trim().toLowerCase();
+                    result = result.filter(item => {
+                        if (searchField === 'all') {
+                            return Object.values(item).some(val => 
+                                String(val).toLowerCase().includes(term)
+                            );
+                        }
+                        return String(item[searchField]).toLowerCase().includes(term);
+                    });
+                }
+
+                // 2. Алфавитный указатель (Задание 3)
+                if (selectedLetter) {
+                    result = result.filter(item => 
+                        item.firstName.startsWith(selectedLetter) || 
+                        item.lastName.startsWith(selectedLetter)
+                    );
+                }
+
+                // 3. Множественные фильтры (Задания 2 и 5)
+                if (activeFilters.length > 0) {
+                    result = result.filter(item => {
+                        const fullName = `${item.firstName}${item.lastName}`;
+                        // Проверка пола
+                        if (activeFilters.includes('male') && item.gender !== 'male') return false;
+                        if (activeFilters.includes('female') && item.gender !== 'female') return false;
+                        
+                        // Проверка длины (без пробелов)
+                        if (activeFilters.includes('short') && fullName.length > 10) return false; // 10 букв без пробелов (примерно 5+5)
+                        if (activeFilters.includes('long') && fullName.length <= 10) return false;
+                        
+                        return true;
+                    });
+                }
+
+                // 4. Сортировка
+                result.sort((a, b) => {
+                    const nameA = `${a.firstName} ${a.lastName}`;
+                    const nameB = `${b.firstName} ${b.lastName}`;
+                    return sortOrder === 'asc' 
+                        ? nameA.localeCompare(nameB) 
+                        : nameB.localeCompare(nameA);
+                });
+
+                return result;
+            }, [searchTerm, searchField, selectedLetter, activeFilters, sortOrder]);
+
+            // Рендер
+            return h('div', { className: 'container' },
+                h('h1', null, 'Справочник'),
+                h('p', { style: { textAlign: 'center', color: '#666', marginTop: '-10px', marginBottom: '20px' } }, 'ПР32 + Все самостоятельные задания'),
+
+                // Алфавит (Задание 3)
+                h('div', { className: 'alphabet' },
+                    h('button', { 
+                        className: `alpha-btn ${selectedLetter === '' ? 'active' : ''}`, 
+                        onClick: () => setSelectedLetter('') 
+                    }, 'Все'),
+                    alphabet.map(char => h('button', {
+                        key: char,
+                        className: `alpha-btn ${selectedLetter === char ? 'active' : ''}`,
+                        onClick: () => setSelectedLetter(selectedLetter === char ? '' : char)
+                    }, char))
+                ),
+
+                h('div', { className: 'controls' },
+                    // Строка поиска
+                    h('div', { className: 'row' },
+                        h('input', {
+                            type: 'text',
+                            placeholder: 'Поиск...',
+                            value: searchTerm,
+                            onChange: handleSearch,
+                            style: { flex: 1, minWidth: '200px' }
+                        }),
+                        // Выбор поля для поиска (Задание 4)
+                        h('select', { value: searchField, onChange: handleFieldChange },
+                            h('option', { value: 'all' }, 'Везде'),
+                            h('option', { value: 'firstName' }, 'По имени'),
+                            h('option', { value: 'lastName' }, 'По фамилии'),
+                            h('option', { value: 'city' }, 'По городу')
+                        ),
+                        searchTerm && h('button', { 
+                            className: 'btn btn-gray', 
+                            onClick: () => setSearchTerm('') 
+                        }, '✕')
+                    ),
+
+                    // Чекбоксы (Задание 5)
+                    h('div', { className: 'checkboxes' },
+                        h('span', { style: { fontWeight: 'bold' } }, 'Фильтры:'),
+                        h('label', null, h('input', { type: 'checkbox', checked: activeFilters.includes('male'), onChange: () => toggleFilter('male') }), 'Мужчины'),
+                        h('label', null, h('input', { type: 'checkbox', checked: activeFilters.includes('female'), onChange: () => toggleFilter('female') }), 'Женщины'),
+                        h('label', null, h('input', { type: 'checkbox', checked: activeFilters.includes('short'), onChange: () => toggleFilter('short') }), 'Короткие имена'),
+                        h('label', null, h('input', { type: 'checkbox', checked: activeFilters.includes('long'), onChange: () => toggleFilter('long') }), 'Длинные имена')
+                    ),
+
+                    // Кнопки управления
+                    h('div', { className: 'row', style: { marginTop: '10px' } },
+                        h('button', { className: 'btn btn-green', onClick: toggleSort },
+                            sortOrder === 'asc' ? 'Сортировка: А-Я' : 'Сортировка: Я-А'
+                        ),
+                        // Экспорт (Задание 6)
+                        h('button', { 
+                            className: 'btn btn-blue', 
+                            onClick: () => exportResults(filteredItems),
+                            disabled: filteredItems.length === 0,
+                            style: { opacity: filteredItems.length === 0 ? 0.5 : 1 }
+                        }, `Экспорт (${filteredItems.length})`)
+                    )
+                ),
+
+                // Статистика
+                h('div', { className: 'stats' },
+                    h('span', null, `Показано: ${filteredItems.length} из ${initialData.length}`),
+                    h('span', null, `Активных фильтров: ${activeFilters.length + (selectedLetter ? 1 : 0) + (searchTerm ? 1 : 0)}`)
+                ),
+
+                // Список результатов
+                filteredItems.length === 0 
+                    ? h('div', { className: 'empty-state' }, 'Ничего не найдено. Попробуйте изменить фильтры.')
+                    : h('ul', { style: { listStyle: 'none', padding: 0, margin: 0 } },
+                        filteredItems.map(item => {
+                            const fullName = `${item.firstName} ${item.lastName}`;
+                            return h('li', { key: item.id, className: 'list-item' },
+                                h('div', null,
+                                    h('div', { style: { fontSize: '16px', fontWeight: 'bold' } },
+                                        searchTerm && (searchField === 'all' || searchField === 'firstName' || searchField === 'lastName')
+                                            ? highlightText(fullName, searchTerm)
+                                            : fullName
+                                    ),
+                                    h('div', { style: { fontSize: '13px', color: '#666', marginTop: '4px' } },
+                                        `${item.age} лет, г. `,
+                                        searchTerm && searchField === 'city' ? highlightText(item.city, searchTerm) : item.city
+                                    )
+                                ),
+                                h('span', { 
+                                    style: { fontSize: '12px', background: item.gender === 'male' ? '#e3f2fd' : '#fce4ec', color: item.gender === 'male' ? '#1565c0' : '#c2185b', padding: '3px 8px', borderRadius: '10px' } 
+                                }, item.gender === 'male' ? 'М' : 'Ж')
+                            );
+                        })
+                    )
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+    </script>
+</body>
+</html>
